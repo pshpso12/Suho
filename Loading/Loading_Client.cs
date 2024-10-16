@@ -13,32 +13,7 @@ using Insight;
 
 public class Loading_Client : NetworkBehaviour
 {
-    private Slider LoadingSldier;
-    private TMP_Text LoadingSlider_Text;
-    private Button checkbtn;
-    private TMP_InputField userInputField;
-    private TMP_InputField Nickname_Field;
-    private Button Nickbtn;
-    private GameObject Load_fail;
-    private Button Load_fail1_btn;
-    private Button Load_fail2_btn;
-    public Lobby_Client lobbyclient;
-
-    private GameObject Steam_fail;
-    private Button Steam_fail_btn;
-
-    private GameObject Version_fail;
-    private Button Version_fail_btn;
-
-    private GameObject panel_loding;
-    private GameObject panel_Nick;
-    private GameObject panel_First;
-    private GameObject panel_Logo;
-    private GameObject Nick_Logfail;
-    private GameObject Nick_Logfail2;
-    private GameObject Nick_Logsuccess;
-    private TMP_Text nickSuccessText;
-
+    public Loading_Things loadingthings;
     private List<string> profanitiesList = new List<string>();
     
     public class TextureDataHolder
@@ -56,14 +31,6 @@ public class Loading_Client : NetworkBehaviour
     private bool isUserDataUpdated_1 = false;
 
     private bool coroutineStarted = false;
-    private Button Nick_Logfail1_btn;
-    private Button Nick_Logfail2_btn;
-    private Button Nick_Logsuccess1_btn;
-    private Button Nick_Logsuccess2_btn;
-
-    private bool isButtonClicked = false;
-    private string Forsendnickname;
-
     public Fade_InOut fade_inout;
 
     private AsyncOperation sceneAsync;
@@ -77,8 +44,9 @@ public class Loading_Client : NetworkBehaviour
     
     void Start()
     {
-    	/*변수 할당 코드는 프트폴리오에서는 생략하였습니다.
-     	Find, GetComponent()로 할당하였습니다.*/
+    	/*모든 변수 할당을 Start()문에서 Find, GetComponent()로 할당하였다가 런타임 성능을 고려하여
+	에디터에서 변수들을 직접 할당한 Loading_Things를 참조하는 방식으로 변경*/
+    	loadingthings = GameObject.Find("Loading_Object").GetComponent<Loading_Things>();
      
         if(isClient)
             DontDestroyOnLoad(this);
@@ -92,23 +60,23 @@ public class Loading_Client : NetworkBehaviour
             }
             
             /*Log 팝업, 닉네임 설정 버튼 - 간소화 필요*/
-            Load_fail1_btn.onClick.AddListener(OnLoadfail1Clicked);
-            Load_fail2_btn.onClick.AddListener(OnLoadfail2Clicked);
-            Nick_Logfail1_btn.onClick.AddListener(OnfailLoggingClicked1);
-            Nick_Logfail2_btn.onClick.AddListener(OnfailLoggingClicked2);
-            Nick_Logsuccess1_btn.onClick.AddListener(OnSuccessLoggingClicked1);
-            Nick_Logsuccess2_btn.onClick.AddListener(OnSuccessLoggingClicked2);
-            Nickbtn.onClick.AddListener(OnNicknameSubmitClicked);
+            loadingthings.Load_fail1_btn.onClick.AddListener(OnLoadfail1Clicked);
+            loadingthings.Load_fail2_btn.onClick.AddListener(OnLoadfail2Clicked);
+            loadingthings.Nick_Logfail1_btn.onClick.AddListener(OnfailLoggingClicked1);
+            loadingthings.Nick_Logfail2_btn.onClick.AddListener(OnfailLoggingClicked2);
+            loadingthings.Nick_Logsuccess1_btn.onClick.AddListener(OnSuccessLoggingClicked1);
+            loadingthings.Nick_Logsuccess2_btn.onClick.AddListener(OnSuccessLoggingClicked2);
+            loadingthings.Nickbtn.onClick.AddListener(OnNicknameSubmitClicked);
             
             /*버튼 Over, Click에 대한 소리 추가*/
             UisoundManager = GameObject.Find("UI_SoundObject").GetComponent<UISoundManager>();
-            AddButtonListeners(Load_fail1_btn, false, true, 3);
-            AddButtonListeners(Load_fail2_btn, false, true, 2);
-            AddButtonListeners(Nickbtn, false, true, 3);
-            AddButtonListeners(Nick_Logfail1_btn, false, true, 3);
-            AddButtonListeners(Nick_Logfail2_btn, false, true, 3);
-            AddButtonListeners(Nick_Logsuccess1_btn, false, true, 3);
-            AddButtonListeners(Nick_Logsuccess2_btn, false, true, 2);
+            AddButtonListeners(loadingthings.Load_fail1_btn, false, true, 3);
+            AddButtonListeners(loadingthings.Load_fail2_btn, false, true, 2);
+            AddButtonListeners(loadingthings.Nickbtn, false, true, 3);
+            AddButtonListeners(loadingthings.Nick_Logfail1_btn, false, true, 3);
+            AddButtonListeners(loadingthings.Nick_Logfail2_btn, false, true, 3);
+            AddButtonListeners(loadingthings.Nick_Logsuccess1_btn, false, true, 3);
+            AddButtonListeners(loadingthings.Nick_Logsuccess2_btn, false, true, 2);
 						
 	    /*닉네임 비속어 체크를 위한 리소스 로드*/
             LoadProfanities();
@@ -249,7 +217,7 @@ public class Loading_Client : NetworkBehaviour
 	/*로고 동영상이 4초 가량 재생된 후에 작업이 시작되어야하기 때문에
 	4.5f를 기다린 후 로고 동영상 오브젝트 끄기*/
         yield return new WaitForSeconds(4.5f);
-        panel_Logo.SetActive(false);
+        loadingthings.panel_Logo.SetActive(false);
         
         /*서버와 통신을 기다릴 수 있게 5초의 시간 조정
         GameVersionCheck == 1은 버전이 동일하기 때문에 다음 Chek로 이동
@@ -267,7 +235,7 @@ public class Loading_Client : NetworkBehaviour
         }
         else if(GameVersionCheck == 2)
         {
-            Version_fail.SetActive(true);
+            loadingthings.Version_fail.SetActive(true);
             if(UisoundManager != null)
                 UisoundManager.PlayWarringSound();
         }
@@ -282,18 +250,18 @@ public class Loading_Client : NetworkBehaviour
     {
 	/*화면 전환이 바로 이루어질 경우 시각적으로 부자연스러워 검은화면 alpha 값을 
 	통해 Fadein 효과 추가*/
-        float alpha = panel_First.GetComponentInChildren<Image>().color.a;
+        float alpha = loadingthings.panel_First.GetComponentInChildren<Image>().color.a;
         Color fadeColor = Color.black;
         while (alpha > 0)
         {
             yield return new WaitForSeconds(0.01f);
             alpha -= 0.01f * 2f;
             fadeColor.a = alpha;
-            panel_First.GetComponentInChildren<Image>().color = fadeColor;
+            loadingthings.panel_First.GetComponentInChildren<Image>().color = fadeColor;
 
             if (fadeColor.a <= 0)
             {
-                panel_First.SetActive(false);
+                loadingthings.panel_First.SetActive(false);
             }
         }
         
@@ -313,7 +281,7 @@ public class Loading_Client : NetworkBehaviour
         }
         else if(clientAuth.loginRes == "LogFail")
         {
-            Load_fail.SetActive(true);
+            loadingthings.Load_fail.SetActive(true);
             clientAuth.loginRes = "None";
             if(UisoundManager != null)
                 UisoundManager.PlayWarringSound();
@@ -332,8 +300,8 @@ public class Loading_Client : NetworkBehaviour
         while (!sceneAsync.isDone)
         {
             float LoadingNum = sceneAsync.progress * 0.9f;
-            LoadingSldier.value = sceneAsync.progress * 0.9f;
-            LoadingSlider_Text.text = (LoadingNum * 100).ToString("F0") + " %";
+            loadingthings.LoadingSldier.value = sceneAsync.progress * 0.9f;
+            loadingthings.LoadingSlider_Text.text = (LoadingNum * 100).ToString("F0") + " %";
             if (sceneAsync.progress >= 0.9f)
             {
                 isSceneLoaded = true;
@@ -362,7 +330,7 @@ public class Loading_Client : NetworkBehaviour
 	    FadeinCanvas는 검은화면을 alpha값 조정으로 Fadein을 구현한 코드이며
 	    포트폴리오에는 첨부하지 않았습니다.*/
             StartCoroutine(FillSlider(2));
-            yield return new WaitUntil(() => LoadingSldier.value == 1f);
+            yield return new WaitUntil(() => loadingthings.LoadingSldier.value == 1f);
             yield return fade_inout.StartCoroutine(fade_inout.FadeinCanvas(10));
             sceneAsync.allowSceneActivation = true; 
             SceneManager.sceneLoaded += OnSceneLoaded;
@@ -371,13 +339,13 @@ public class Loading_Client : NetworkBehaviour
         else
         {
             StartCoroutine(FillSlider(2));
-            yield return new WaitUntil(() => LoadingSldier.value == 1f);
+            yield return new WaitUntil(() => loadingthings.LoadingSldier.value == 1f);
             yield return fade_inout.StartCoroutine(fade_inout.FadeinCanvas(10));
-            panel_loding.SetActive(false);
-            panel_Nick.SetActive(true);
+            loadingthings.panel_loding.SetActive(false);
+            loadingthings.panel_Nick.SetActive(true);
             yield return fade_inout.StartCoroutine(fade_inout.FadeoutCanvas(1));
             /*팝업이 발생한 후 inputfield에 바로 텍스트를 적을 수 있게 하기 위함*/
-            EventSystem.current.SetSelectedGameObject(Nickname_Field.gameObject);
+            EventSystem.current.SetSelectedGameObject(loadingthings.Nickname_Field.gameObject);
             
             BackgroundManager audioManager = GameObject.Find("SoundObject").GetComponent<BackgroundManager>();
             if(audioManager != null)
@@ -405,7 +373,7 @@ public class Loading_Client : NetworkBehaviour
     /*기존 접속확인에서 기존접속을 끊고 접속할 경우*/
     private void OnLoadfail1Clicked()
     {
-        Load_fail.SetActive(false);
+        loadingthings.Load_fail.SetActive(false);
         clientAuth.QuitExist(SteamInfo.SteamID);
         StartCoroutine(CheckExistDone());
     }
@@ -435,14 +403,14 @@ public class Loading_Client : NetworkBehaviour
     /*버튼 클릭 시 닉네임이 조건에 부합한지 클라이언트 차원에서 확인 후 서버로 전송*/
     private void OnNicknameSubmitClicked()
     {
-        string nickname = Nickname_Field.text;
-        SteamInfo.Nickname = Nickname_Field.text;
+        string nickname = loadingthings.Nickname_Field.text;
+        SteamInfo.Nickname = loadingthings.Nickname_Field.text;
         
         if (!IsValidNickname(nickname))
         {
-            Nick_Logfail2.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Nick_Logfail2_btn.gameObject);
-            Nickname_Field.text = "";
+            loadingthings.Nick_Logfail2.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(loadingthings.Nick_Logfail2_btn.gameObject);
+            loadingthings.Nickname_Field.text = "";
             if(UisoundManager != null)
                 UisoundManager.PlayWarringSound();
             return;
