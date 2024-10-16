@@ -53,4 +53,36 @@ public class Loading_Server : NetworkBehaviour
         ClientDataManager.Instance.UpdateUserDetails(response);
         isUserDataUpdated_1 = true;
     }
+    /*클라이언트는 캐릭터 상태를 저장합니다.*/
+    [TargetRpc]
+    public void CharacterDataSendToClient(NetworkConnectionToClient target, SteamLobby_Server.CharactersResponse response)
+    {
+        ClientDataManager.Instance.UpdateCharacterData(response);
+    }
+    /*클라이언트는 보유 의상 정보를 저장합니다.*/
+    [TargetRpc]
+    public void OutfitDataSendToClient(NetworkConnectionToClient target, SteamLobby_Server.OutfitsResponse response)
+    {
+        ClientDataManager.Instance.UpdateOutfitData(response);
+    }
+    /*클라이언트는 보유 악세사리 정보를 저장합니다.*/
+    [TargetRpc]
+    public void AccDataSendToClient(NetworkConnectionToClient target, SteamLobby_Server.AccessoriesResponse response)
+    {
+        ClientDataManager.Instance.UpdateAccessoriesData(response);
+    }
+    /*서버는 닉네임과 SteamID를 받아 유저 생성을 진행합니다.*/
+    [Command]
+    private void CmdCreateNewUser(string nickname, string steamID, NetworkIdentity ClientIdentity)
+    {
+        LodingServerScript.StartCoroutine(LodingServerScript.CreateNewUser(nickname, steamID, ClientIdentity));
+    }
+    /*유저 생성이 정상적으로 완료되었으면, 비동기로 로드한 씬을 완료하여 Lobby로 이동합니다.*/
+    [TargetRpc]
+    public void CreateDone(NetworkConnectionToClient target)
+    {
+        sceneAsync.allowSceneActivation = true;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        
+    }
 }
