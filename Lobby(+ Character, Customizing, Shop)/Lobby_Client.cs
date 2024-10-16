@@ -15,11 +15,11 @@ using Newtonsoft.Json;
 public class MainLobby : NetworkBehaviour
 {
     private AttachMain ForRoomCon_AtMain;
-    private LobbyThings lobbythings;
-    private CharThings charthings;
-    private CusThings custhings;
-    private ShopThings shopthings;
-    private PurchasesThings purchaseshings;
+    private Lobby_Things lobbythings;
+    private Char_Things charthings;
+    private Cus_Things custhings;
+    private Shop_Things shopthings;
+    private Purchases_Things purchaseshings;
     private List<string> profanitiesList = new List<string>();
     private List<string> messageBuffer = new List<string>();
     private const int maxMessageCount = 30;
@@ -57,23 +57,24 @@ public class MainLobby : NetworkBehaviour
             if(CloneDatas_22 != null)
                 Destroy(CloneDatas_22.gameObject);
 
+     	    lobbythings = GameObject.Find("Lobby_Object").GetComponent<Lobby_Things>();
             /*비속어 불러오기*/
             LoadProfanities();
 
             
-            chatInputField.onEndEdit.AddListener(Send);
+            lobbythings.chatInputField.onEndEdit.AddListener(Send);
             /*"/r"로 다시 보내는 기능*/
-            chatInputField.onValueChanged.AddListener(delegate { HandleInputFieldChange(); });
+            lobbythings.chatInputField.onValueChanged.AddListener(delegate { HandleInputFieldChange(); });
 
-            RoomCreateButton.onClick.AddListener(OnButtonSendRoom);
+            lobbythings.RoomCreateButton.onClick.AddListener(OnButtonSendRoom);
 
             /*결제 기능 적용*/
             PurChaseLoad();
 
             /*채팅 기능이 없는 커스터마이징, 상점에서 다시 로비로 올 때 그 사이에 온 메시지 입력 (최신 순으로 최대 30개)*/
-            if (chatText != null && messageBuffer.Count > 0)
+            if (lobbythings.chatText != null && messageBuffer.Count > 0)
             {
-                chatText.text = string.Concat(messageBuffer);
+                lobbythings.chatText.text = string.Concat(messageBuffer);
                 messageBuffer.Clear();
             }
             /*방 목록 찾기와 새로고침 적용*/
@@ -135,13 +136,13 @@ public class MainLobby : NetworkBehaviour
             AddButtonListeners(SQuitBtn, true, true, 1);
             AddButtonListeners(SSetBtn, true, true, 1);
 
-            AddButtonListeners(RoomCreateButton, false, true, 3);
-            AddButtonListeners(RoomSetUI.transform.Find("Panel/cre_btn_2").GetComponent<Button>(), false, true, 2);
-            AddButtonListeners(Room_Exit_Forced.transform.Find("Panel/Buy_success_btn").GetComponent<Button>(), false, true, 3);
-            AddButtonListeners(Room_Enter_Error_Passwrong.transform.Find("Panel/Buy_success_btn").GetComponent<Button>(), false, true, 3);
-            AddButtonListeners(Room_Enter_Withpass_Panl.transform.Find("Panel/enter_btn_1").GetComponent<Button>(), false, true, 3);
-            AddButtonListeners(Room_Enter_Withpass_Panl.transform.Find("Panel/enter_btn_2").GetComponent<Button>(), false, true, 2);
-            AddButtonListeners(Room_Enter_Error_Panl.transform.Find("Panel/Buy_success_btn").GetComponent<Button>(), false, true, 3);
+            AddButtonListeners(lobbythings.RoomCreateButton, false, true, 3);
+            AddButtonListeners(lobbythings.RoomSetUI.transform.Find("Panel/cre_btn_2").GetComponent<Button>(), false, true, 2);
+            AddButtonListeners(lobbythings.Room_Exit_Forced.transform.Find("Panel/Buy_success_btn").GetComponent<Button>(), false, true, 3);
+            AddButtonListeners(lobbythings.Room_Enter_Error_Passwrong.transform.Find("Panel/Buy_success_btn").GetComponent<Button>(), false, true, 3);
+            AddButtonListeners(lobbythings.Room_Enter_Withpass_Panl.transform.Find("Panel/enter_btn_1").GetComponent<Button>(), false, true, 3);
+            AddButtonListeners(lobbythings.Room_Enter_Withpass_Panl.transform.Find("Panel/enter_btn_2").GetComponent<Button>(), false, true, 2);
+            AddButtonListeners(lobbythings.Room_Enter_Error_Panl.transform.Find("Panel/Buy_success_btn").GetComponent<Button>(), false, true, 3);
 
             AddButtonListeners(GameObject.Find("Canvas/Quit_set/Panel/cre_btn_1").GetComponent<Button>(), false, true, 3);
             AddButtonListeners(GameObject.Find("Canvas/Quit_set/Panel/cre_btn_2").GetComponent<Button>(), false, true, 2);
