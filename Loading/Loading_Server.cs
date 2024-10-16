@@ -12,7 +12,7 @@ using UnityEngine.EventSystems;
 using Insight;
 
 /*동작을 쉽게 보기위해 포트폴리오에서는 서버동작과 클라이언트동작을 합쳐두었습니다.*/
-/*[TargetRpc]는 Loading_Client에서 동작합니다.*/
+/*실제로는 [TargetRpc]가 Loading_Client에서 동작합니다.*/
 public class Loading_Server : NetworkBehaviour
 {
     public string GameVersionString;
