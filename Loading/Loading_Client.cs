@@ -1,0 +1,279 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Mirror;
+using Steamworks;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
+using System.Text.RegularExpressions;
+using System;
+using UnityEngine.EventSystems;
+using Insight;
+
+public class Loading_Client : NetworkBehaviour
+{
+		void Start()
+    {
+        if(isClient)
+            DontDestroyOnLoad(this);
+        if (isClient && isLocalPlayer && SceneManager.GetActiveScene().name == "M_Loading")
+        {
+            if (cursorTexture != null)
+            {
+		            /*Default Cursor 사용 시 인게임에서 cusror 애니메이션 사용 시 
+		            Default Cursor가 한 프레임 적용되서 SetCursor 이용*/
+                Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
+            }
+            
+            /*Log 팝업, 닉네임 설정 버튼 - 간소화 필요*/
+            Load_fail1_btn.onClick.AddListener(OnLoadfail1Clicked);
+            Load_fail2_btn.onClick.AddListener(OnLoadfail2Clicked);
+            Nick_Logfail1_btn.onClick.AddListener(OnfailLoggingClicked1);
+            Nick_Logfail2_btn.onClick.AddListener(OnfailLoggingClicked2);
+            Nick_Logsuccess1_btn.onClick.AddListener(OnSuccessLoggingClicked1);
+            Nick_Logsuccess2_btn.onClick.AddListener(OnSuccessLoggingClicked2);
+            Nickbtn.onClick.AddListener(OnNicknameSubmitClicked);
+            
+            /*버튼 Over, Click에 대한 소리 추가*/
+            UisoundManager = GameObject.Find("UI_SoundObject").GetComponent<UISoundManager>();
+            AddButtonListeners(Load_fail1_btn, false, true, 3);
+            AddButtonListeners(Load_fail2_btn, false, true, 2);
+            AddButtonListeners(Nickbtn, false, true, 3);
+            AddButtonListeners(Nick_Logfail1_btn, false, true, 3);
+            AddButtonListeners(Nick_Logfail2_btn, false, true, 3);
+            AddButtonListeners(Nick_Logsuccess1_btn, false, true, 3);
+            AddButtonListeners(Nick_Logsuccess2_btn, false, true, 2);
+						
+						/*닉네임 비속어 체크를 위한 리소스 로드*/
+            LoadProfanities();
+						
+						/*Steam 확인*/
+            if (!SteamManager.Initialized)
+            {
+                Debug.LogError("Steam is NOT initialized");
+                /*Steam 확인이 안될 경우 Coroutine을 통해 게임을 종료함*/
+                StartCoroutine(CheckGameVersion());
+                return;
+            }
+            
+            CSteamID steamID = SteamUser.GetSteamID();
+            SteamInfo.SteamID = steamID.ToString();
+            NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
+            
+            /*Steam 고유 ID를 서버로 전송*/
+            CmdSendSteamData(SteamInfo.SteamID, opponentIdentity);
+            
+            /*clientAuth는 MasterServer와 GameServer를 계속 이동하는
+            유저의 정보를 MasterServer에서 보유하고 있기 위해 이용됩니다.
+            예시로, MasterServer 혹은 GameServer에 유저가 접속 중인 경우에
+            다시 접속이 연결될 경우 기존 접속을 끊고 접속을 시도할 수 있습니다.*/
+            GameObject clientAuthGameObject = GameObject.Find("GameClient(InsightClient)/ClientAuthentication");
+            clientAuth = clientAuthGameObject.transform.GetComponent<ClientAuthentication>();
+            if(!clientAuth)
+            {
+                Debug.LogError("lientAuth is NOT initialized");
+                return;
+            }
+            clientAuth.SendLoginMsg(steamID.ToString(), "");
+						
+						/*Cliet의 버전과 Server의 버전이 동일한지를 확인하기 위해 
+						현재 Client의 버전을 서버로 전송합니다.*/
+            CmdSendGameVersionString(GameVersionString);
+						
+						/*Steam에서 유저가 해당 게임을 보유 중인지 확인합니다.*/
+            AppId_t gameAppID = new AppId_t(XXXXXXXX);
+            bool ownsGame = SteamApps.BIsSubscribedApp(gameAppID);
+            if (!ownsGame)
+            {
+                Debug.LogError("Player does not own this game!");
+                return;
+            }
+            /*Steam의 아바타 이미지를 게임에서 그대로 사용하기 위해 이미지를 가져와 적용
+            이 때, FlipTextureVertically를 통해 뒤집혀진 이미지를 정상적으로 수정합니다.*/
+            int avatarInt = SteamFriends.GetLargeFriendAvatar(SteamUser.GetSteamID());
+            Texture2D texture = null;
+            if (avatarInt > 0)
+            {
+                uint width, height;
+                SteamUtils.GetImageSize(avatarInt, out width, out height);
+
+                byte[] avatarStream = new byte[4 * (int)width * (int)height];
+                SteamUtils.GetImageRGBA(avatarInt, avatarStream, 4 * (int)width * (int)height);
+
+                texture = new Texture2D((int)width, (int)height, TextureFormat.RGBA32, false);
+                texture.LoadRawTextureData(avatarStream);
+                texture.Apply();
+
+                FlipTextureVertically(texture);
+                TextureDataHolder.UserTexture = texture;
+                ClientDataManager.Instance.UpdateUserTexture(texture);
+            }
+            StartCoroutine(CheckGameVersion());
+        }
+    }
+    
+    /*PointerEnter, OnClick시 사운드 적용*/
+    void AddButtonListeners(Button button, bool enableMouseOverSound, bool enableClickSound, int playNextSound = 0)
+    {
+        if (enableMouseOverSound)
+        {
+            EventTrigger trigger = button.gameObject.AddComponent<EventTrigger>();
+            EventTrigger.Entry entry = new EventTrigger.Entry
+            {
+                eventID = EventTriggerType.PointerEnter
+            };
+            entry.callback.AddListener((eventData) => {
+                if (button.interactable)
+                {
+                    UisoundManager?.PlayMouseOverSound();
+                }
+            });
+            trigger.triggers.Add(entry);
+        }
+        if (enableClickSound)
+        {
+            button.onClick.AddListener(() => {
+                if (button.interactable)
+                {
+                    if (playNextSound == 0)
+                    {
+                        UisoundManager?.PlayClick_NextSound();
+                    }
+                    else if (playNextSound == 1)
+                    {
+                        UisoundManager?.PlayClick_NoneSound();
+                    }
+                    else if (playNextSound == 2)
+                    {
+                        UisoundManager?.PlayCancelSound();
+                    }
+                    else if (playNextSound == 3)
+                    {
+                        UisoundManager?.PlaySuccessBtnSound();
+                    }
+                }
+            });
+        }
+    }
+    
+    /*뒤집힌 이미지 수정*/
+    void FlipTextureVertically(Texture2D original)
+    {
+        var originalPixels = original.GetPixels();
+        Color[] newPixels = new Color[originalPixels.Length];
+
+        int width = original.width;
+        int rows = original.height;
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < rows; y++)
+            {
+                newPixels[x + y * width] = originalPixels[x + (rows - y - 1) * width];
+            }
+        }
+
+        original.SetPixels(newPixels);
+        original.Apply();
+    }
+    
+    /*클라이언트 접속시 수행하는 작업*/
+    private IEnumerator CheckGameVersion()
+    {
+		    /*로고 동영상이 4초 가량 재생된 후에 작업이 시작되어야하기 때문에
+		    4.5f를 기다린 후 로고 동영상 오브젝트 끄기*/
+        yield return new WaitForSeconds(4.5f);
+        panel_Logo.SetActive(false);
+        
+        /*서버와 통신을 기다릴 수 있게 5초의 시간 조정
+        GameVersionCheck == 1은 버전이 동일하기 때문에 다음 Chek로 이동
+        GameVersionCheck == 2는 버전이 다르기 때문에 WarringSound 재생 및 Log 팝업 띄우기
+        GameVersionCheck == 0은 서버와 통신이 안된 것이므로 프로그램 종료*/
+        float timeout = 5f;
+        while (GameVersionCheck == 0 && timeout > 0)
+        {
+            timeout -= Time.deltaTime;
+            yield return null;
+        }
+        if(GameVersionCheck == 1)
+        {
+            StartCoroutine(CheckExist());
+        }
+        else if(GameVersionCheck == 2)
+        {
+            Version_fail.SetActive(true);
+            if(UisoundManager != null)
+                UisoundManager.PlayWarringSound();
+        }
+        else if(GameVersionCheck == 0)
+        {
+            Application.Quit();
+        }
+    }
+    
+    /*기존 접속이 있는지 여부 확인*/
+    private IEnumerator CheckExist()
+    {
+		    /*화면 전환이 바로 이루어질 경우 시각적으로 부자연스러워 검은화면 alpha 값을 
+		    통해 Fadein 효과 추가*/
+        float alpha = panel_First.GetComponentInChildren<Image>().color.a;
+        Color fadeColor = Color.black;
+        while (alpha > 0)
+        {
+            yield return new WaitForSeconds(0.01f);
+            alpha -= 0.01f * 2f;
+            fadeColor.a = alpha;
+            panel_First.GetComponentInChildren<Image>().color = fadeColor;
+
+            if (fadeColor.a <= 0)
+            {
+                panel_First.SetActive(false);
+            }
+        }
+        
+        /*기존 접속확인
+        "LogSuccess"는 기존 접속이 없으므로 씬 비동기로드 진행
+        "LogFail"은 기존 접속이 있으므로 팝업을 띄워 기존 접속을 끊고 접속할지 접속을 종료할지 확인
+        "LogNone"은 TimeOut으로 접속 종료*/
+        float timeout = 20f;
+        while (clientAuth.loginRes == "None" && timeout > 0)
+        {
+            timeout -= Time.deltaTime;
+            yield return null;
+        }
+        if(clientAuth.loginRes == "LogSuccess")
+        {
+            StartCoroutine(LoadSceneCoroutine("Lobby"));
+        }
+        else if(clientAuth.loginRes == "LogFail")
+        {
+            Load_fail.SetActive(true);
+            clientAuth.loginRes = "None";
+            if(UisoundManager != null)
+                UisoundManager.PlayWarringSound();
+        }
+        else if(clientAuth.loginRes == "None")
+        {
+            Application.Quit();
+        }
+    }
+    /*비동기 씬로드 및 로딩바 채우기*/
+    private IEnumerator LoadSceneCoroutine(string sceneName)
+    {
+        yield return new WaitForSeconds(0.5f);
+        sceneAsync = SceneManager.LoadSceneAsync(sceneName);
+        sceneAsync.allowSceneActivation = false; 
+        while (!sceneAsync.isDone)
+        {
+            float LoadingNum = sceneAsync.progress * 0.9f;
+            LoadingSldier.value = sceneAsync.progress * 0.9f;
+            LoadingSlider_Text.text = (LoadingNum * 100).ToString("F0") + " %";
+            if (sceneAsync.progress >= 0.9f)
+            {
+                isSceneLoaded = true;
+                break;
+            }
+            yield return null;
+        }
+    }
