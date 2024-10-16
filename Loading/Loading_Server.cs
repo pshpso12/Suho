@@ -15,7 +15,7 @@ using Insight;
 /*실제로는 [TargetRpc]가 Loading_Client에서 동작합니다.*/
 public class Loading_Server : NetworkBehaviour
 {
-    public string GameVersionString;
+    [SerializeField] private string GameVersionString;
 
     /*클라이언트로 부터 버전 정보를 받고 동일한지 확인*/
     [Command]
@@ -84,17 +84,17 @@ public class Loading_Server : NetworkBehaviour
     [TargetRpc]
     public void TargetNicknameSubmissionResult(NetworkConnectionToClient target, SteamLobby_Server.ServerResponse response, string rechecknick)
     {
-        nickSuccessText.text = $"이 닉네임 은 사용할 수 있습니다.\n<b>{rechecknick}</b>으로 생성하시겠습니까?";
-        Nick_Logsuccess.SetActive(true);
+        loadingthings.nickSuccessText.text = $"이 닉네임 은 사용할 수 있습니다.\n<b>{rechecknick}</b>으로 생성하시겠습니까?";
+        loadingthings.Nick_Logsuccess.SetActive(true);
         EventSystem.current.SetSelectedGameObject(Nick_Logsuccess1_btn.gameObject);
     }
     /*중복된 닉네임이 있음을 클라이언트에게 고지*/
     [TargetRpc]
     public void TargetNicknameSubmissionResult_fail(NetworkConnectionToClient target, SteamLobby_Server.ServerResponse response, string rechecknick)
     
-        Nick_Logfail.SetActive(true);
-        EventSystem.current.SetSelectedGameObject(Nick_Logfail1_btn.gameObject);
-        Nickname_Field.text = "";
+        loadingthings.Nick_Logfail.SetActive(true);
+        EventSystem.current.SetSelectedGameObject(loadingthings.Nick_Logfail1_btn.gameObject);
+        loadingthings.Nickname_Field.text = "";
         if(UisoundManager != null)
             UisoundManager.PlayWarringSound();
     }
