@@ -65,9 +65,9 @@ public class Loading_Client : NetworkBehaviour
             CmdSendSteamData(SteamInfo.SteamID, opponentIdentity);
             
             /*clientAuth는 MasterServer와 GameServer를 계속 이동하는
-            유저의 정보를 MasterServer에서 보유하고 있기 위해 이용됩니다.
+            유저의 정보를 MasterServer에서 보유하고 있기 위해 이용
             예시로, MasterServer 혹은 GameServer에 유저가 접속 중인 경우에
-            다시 접속이 연결될 경우 기존 접속을 끊고 접속을 시도할 수 있습니다.*/
+            다시 접속이 연결될 경우 기존 접속을 끊고 접속을 시도할 수 있음*/
             GameObject clientAuthGameObject = GameObject.Find("GameClient(InsightClient)/ClientAuthentication");
             clientAuth = clientAuthGameObject.transform.GetComponent<ClientAuthentication>();
             if(!clientAuth)
@@ -78,10 +78,10 @@ public class Loading_Client : NetworkBehaviour
             clientAuth.SendLoginMsg(steamID.ToString(), "");
 						
 	    /*Cliet의 버전과 Server의 버전이 동일한지를 확인하기 위해 
-	    현재 Client의 버전을 서버로 전송합니다.*/
+	    현재 Client의 버전을 서버로 전송*/
             CmdSendGameVersionString(GameVersionString);
 						
-	    /*Steam에서 유저가 해당 게임을 보유 중인지 확인합니다.*/
+	    /*Steam에서 유저가 해당 게임을 보유 중인지 확인*/
             AppId_t gameAppID = new AppId_t(XXXXXXXX);
             bool ownsGame = SteamApps.BIsSubscribedApp(gameAppID);
             if (!ownsGame)
@@ -90,7 +90,7 @@ public class Loading_Client : NetworkBehaviour
                 return;
             }
             /*Steam의 아바타 이미지를 게임에서 그대로 사용하기 위해 이미지를 가져와 적용
-            이 때, FlipTextureVertically를 통해 뒤집혀진 이미지를 정상적으로 수정합니다.*/
+            이 때, FlipTextureVertically를 통해 뒤집혀진 이미지를 정상적으로 수정*/
             int avatarInt = SteamFriends.GetLargeFriendAvatar(SteamUser.GetSteamID());
             Texture2D texture = null;
             if (avatarInt > 0)
@@ -346,7 +346,7 @@ public class Loading_Client : NetworkBehaviour
     }
     
     /*기존 접속이 끊어졌을 경우 서버로 부터 해당 정보를 받아
-     clientAuth.DisM이 true로 변경됩니다.*/
+     clientAuth.DisM이 true로 변경*/
     private IEnumerator CheckExistDone()
     {
         float timeout = 20f;
