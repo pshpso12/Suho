@@ -19,6 +19,7 @@ public class MainLobby : NetworkBehaviour
     private Char_Things charthings;
     private Cus_Things custhings;
     private Shop_Things shopthings;
+    private Room_Things roomthings;
     private Purchases_Things purchasethings;
     private List<string> profanitiesList = new List<string>();
     private List<string> messageBuffer = new List<string>();
@@ -28,6 +29,14 @@ public class MainLobby : NetworkBehaviour
     private string lastWhisperID = "";
     private List<string> messageHistory = new List<string>();
     private int currentHistoryIndex = -1;
+
+    private int Shop_characterNum;
+    private string Shop_type;
+    private string Shop_description;
+    private string Shop_itemName;
+    private string Shop_price;
+    private string Shop_priceType;
+    private bool Shop_isWorn;
     
     private Callback<MicroTxnAuthorizationResponse_t> microTxnCallback;
 
@@ -151,13 +160,13 @@ public class MainLobby : NetworkBehaviour
             AddButtonListeners(GameObject.Find("Canvas/Set_set/Panel/cre_btn_2").GetComponent<Button>(), false, true, 2);
         }
     }
-
+    
     public void Initialize_Char()
     {
         if(isClient && isLocalPlayer)
         {
             objectActivator = Ui_List.GetComponent<ObjectActivatorM>();
-            Change_Btn.onClick.AddListener(OnButtonSendIndex);
+            charthings.Change_Btn.onClick.AddListener(OnButtonSendIndex);
 
             PurChaseLoad();
 
@@ -166,9 +175,9 @@ public class MainLobby : NetworkBehaviour
             {
                 AddButtonListeners(btn, true, true, 0);
             }
-            AddButtonListeners(Change_Btn, true, true, 3);
-            AddButtonListeners(Log_panel_btn, false, true, 3);
-            AddButtonListeners(Log_panel_fail_btn, false, true, 3);
+            AddButtonListeners(charthings.Change_Btn, true, true, 3);
+            AddButtonListeners(charthings.Log_panel_btn, false, true, 3);
+            AddButtonListeners(charthings.Log_panel_fail_btn, false, true, 3);
             AddButtonListeners(SQuitBtn, true, true, 0);
 
             if(audioManager != null)
@@ -218,7 +227,7 @@ public class MainLobby : NetworkBehaviour
                     AddButtonListeners(btn, true, true, 0);
                 }
             }
-            AddButtonListeners(Cus_Log_panel_fail_btn, false, true, 3);
+            AddButtonListeners(custhings.Cus_Log_panel_fail_btn, false, true, 3);
             AddButtonListeners(SQuitBtn, true, true, 0);
 
             if(audioManager != null)
@@ -255,13 +264,13 @@ public class MainLobby : NetworkBehaviour
                     }
                 }
             }
-            Shop_dropdown.onValueChanged.AddListener(delegate {
-                DropdownValueChanged(Shop_dropdown);
+            shopthings.Shop_dropdown.onValueChanged.AddListener(delegate {
+                DropdownValueChanged(shopthings.Shop_dropdown);
             });
-            Shop_BuySuccess.onClick.AddListener(() => 
+            shopthings.Shop_BuySuccess.onClick.AddListener(() => 
             OnButtonItemBuy(Shop_characterNum, Shop_type, Shop_description, Shop_itemName, 
             Shop_price, Shop_priceType, Shop_isWorn));
-            Shop_toggle.onValueChanged.AddListener(ToggleValueChanged);
+            shopthings.Shop_toggle.onValueChanged.AddListener(ToggleValueChanged);
 
             Button SQuitBtn = GameObject.Find("Ui_Overone/Over_Btn/Quit_btn").GetComponent<Button>();
             Button Shop_BuyNo1 = buy_Panel.transform.Find("Button").GetComponent<Button>();
@@ -282,11 +291,11 @@ public class MainLobby : NetworkBehaviour
             AddButtonListeners(Shop_BuyYes, false, true, 3);
             AddButtonListeners(Shop_BuyNo1, false, true, 2);
             AddButtonListeners(Shop_BuyNo2, false, true, 2);
-            AddButtonListeners(Shop_BuySuccess, false, true, 3);
+            AddButtonListeners(shopthings.Shop_BuySuccess, false, true, 3);
             AddButtonListeners(buy_Panel.transform.Find("BuyCheck_Panel/Buy_success/Panel/LastBuy_success_btn_no").GetComponent<Button>(), false, true, 2);
-            AddButtonListeners(Shop_Log_Success_btn, false, true, 3);
-            AddButtonListeners(Shop_Log_Fail_btn, false, true, 3);
-            AddButtonListeners(Shop_Log_Fail_btn2, false, true, 3);
+            AddButtonListeners(shopthings.Shop_Log_Success_btn, false, true, 3);
+            AddButtonListeners(shopthings.Shop_Log_Fail_btn, false, true, 3);
+            AddButtonListeners(shopthings.Shop_Log_Fail_btn2, false, true, 3);
             AddButtonListeners(SQuitBtn, true, true, 0);
             
             if(audioManager != null)
@@ -298,8 +307,43 @@ public class MainLobby : NetworkBehaviour
                 }
                 if(!audioManager.IsMusicPlaying())
                 {
-                    //StartCoroutine(audioManager.PlayMusic());
                     audioManager.PlayMusic_A();
+                }
+            }
+        }
+    }
+    
+    public void Initialize_Room()
+    {
+        if(isClient && isLocalPlayer)
+        {
+            roomthings.RoomchatInputField.onEndEdit.AddListener(RoomChatSend);
+            roomthings.RoomchatInputField.onValueChanged.AddListener(delegate { HandleRoomInputFieldChange(); });
+
+            if (cursorTexture != null)
+            {
+                Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
+            }
+            
+            if(audioManager != null)
+            {
+                audioManager.StopIngameMusic();
+                if(!audioManager.IsMusicBackPlaying())
+                {
+                    audioManager.PlayBackMusic();
+                }
+                if(!audioManager.IsMusicPlaying())
+                {
+                    audioManager.PlayMusic_A();
+                }
+            }
+            else
+            {
+                audioManager = GameObject.Find("SoundObject").GetComponent<BackgroundManager>();
+                audioManager.ToLobbyMusic();
+                if(!audioManager.IsMusicBackPlaying())
+                {
+                    audioManager.PlayBackMusic();
                 }
             }
         }
@@ -438,83 +482,7 @@ public class MainLobby : NetworkBehaviour
 
         return Sumpurchase;
     }
-    [Command]
-    void CmdPurcahseRe(NetworkIdentity ClientIdentity, string steamID, int Sumpurchase)
-    {
-        mainLobbyServer.StartCoroutine(mainLobbyServer.Purchase_Things(ClientIdentity, steamID, Sumpurchase));
-    }
-    [TargetRpc]
-    public void RpcPurchaseReturn(NetworkConnectionToClient target, bool sucfail)
-    {
-        if(sucfail == true)
-        {
-            if(PurchaseCheckReal_Panel != null)
-            {
-                PurchaseCheckReal_Panel.SetActive(true);
-            }
-        }
-        else
-        {
-            if(PurchaseCheckRealFail_Panel != null)
-            {
-                PurchaseCheckRealFail_Panel.SetActive(true);
-                if(UisoundManager != null)
-                    UisoundManager.PlayWarringSound();
-            }
-        }
-    }
-    void OnMicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse_t pCallback) {
-		//Debug.Log("[" + MicroTxnAuthorizationResponse_t.k_iCallback + " - MicroTxnAuthorizationResponse] - " + pCallback.m_unAppID + " -- " + pCallback.m_ulOrderID + " -- " + pCallback.m_bAuthorized);
-        if (pCallback.m_bAuthorized == 1)
-        {
-            NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
-            SendTransactionToServer(opponentIdentity, pCallback.m_ulOrderID);
-        }
-        else
-        {
-            if(Purchase_Log_Fail != null)
-            {
-                Purchase_Log_Fail.SetActive(true);
-            }
-        }
-    }
-    [Command]
-    void SendTransactionToServer(NetworkIdentity ClientIdentity, ulong orderID)
-    {
-        mainLobbyServer.StartCoroutine(mainLobbyServer.GetTransactionReport(ClientIdentity, orderID));
-    }
-    [TargetRpc]
-    public void RpcFinalPurchaseReturn(NetworkConnectionToClient target, bool sucfail)
-    {
-        if(sucfail == true)
-        {
-            if(Purchase_Log_Success != null)
-            {
-                Purchase_Log_Success.SetActive(true);
-            }
-        }
-        else
-        {
-            if(Purchase_Log_Fail2 != null)
-            {
-                Purchase_Log_Fail2.SetActive(true);
-                if(UisoundManager != null)
-                    UisoundManager.PlayWarringSound();
-            }
-        }
-    }
-    [TargetRpc]
-    public void UpdateCPCost(NetworkConnectionToClient target, int CP)
-    {
-        ClientDataManager.Instance.CostUpdate(CP, ClientDataManager.Instance.UserDetails.basepoint);
-        TMP_Text ReloadCpText = GameObject.Find("Canvas/Ui_Overone/Cp_text").GetComponent<TMP_Text>();
-        if(ReloadCpText)
-        {
-            ReloadCpText.text = $"{ClientDataManager.Instance.UserDetails.cashpoint.ToString("N0")}";
-        }
-        if(UisoundManager != null)
-            UisoundManager.PlayBuySound();
-    }
+
     void AddButtonListeners(Button button, bool enableMouseOverSound, bool enableClickSound, int playNextSound = 0)
     {
         if (enableMouseOverSound)
@@ -557,51 +525,8 @@ public class MainLobby : NetworkBehaviour
             });
         }
     }
-    
-    public void OnButtonSendIndex()
-    {
-        if(objectActivator != null)
-        {
-            int index = objectActivator.Index_Send;
-            if (int.TryParse(ClientDataManager.Instance.UserDetails.MainCharacterID, out int MainCharacterID))
-            {
-                if(index + 1 == MainCharacterID)
-                {
-                    Log_panel.SetActive(true);
-                    EventSystem.current.SetSelectedGameObject(Log_panel_btn.gameObject);
-                }
-                else
-                {
-                    NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
-                    Change_MainCha(index, opponentIdentity, ClientDataManager.Instance.UserDetails.userID);
-                }
-            }
-        }
-    }
-    [Command]
-    private void Change_MainCha(int index, NetworkIdentity ClientIdentity, string UId)
-    {
-        //Debug.Log($"Received Index: {index + 1}");
-        mainLobbyServer.StartCoroutine(mainLobbyServer.UpdateMaincha(index + 1, ClientIdentity, UId));
-    }
 
-    [TargetRpc]
-    public void MainChaDataSendToClient(NetworkConnectionToClient target, bool sucfail, int newindex)
-    {
-        if(sucfail == true)
-        {
-            ClientDataManager.Instance.UpdateUserDetails_MainCha(newindex.ToString());
-            Log_panel.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Log_panel_btn.gameObject);
-        }
-        else
-        {
-            Log_panel_fail.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Log_panel_fail_btn.gameObject);
-            if(UisoundManager != null)
-                UisoundManager.PlayWarringSound();
-        }
-    }
+    /*방 생성 시 정보들을 서버로 전송*/
     public void OnButtonSendRoom()
     {
         string roomName = RoomnameText.text;
@@ -614,178 +539,43 @@ public class MainLobby : NetworkBehaviour
         RoomSetUI.SetActive(false);
         Room_Cre_Panl.SetActive(true);
     }
-
-    [Command]
-    private void CmdRoomCre(NetworkIdentity ClientIdentity, string roomName, string roomPass, string RoomPNum)
+    /*대표 캐릭터 변경*/
+    public void OnButtonSendIndex()
     {
-        int capacity = int.Parse(RoomPNum);
-        KihanaRoomManager.Instance.CreateRoom(roomName, capacity, roomPass, (createdRoom, loadedScene) => {
-            GameObject RoomGameobject = Instantiate(myNetworkRoomPrefab);
-            RoomData roomData = RoomGameobject.GetComponent<RoomData>();
-            if (roomData != null)
+        if(objectActivator != null)
+        {
+            int index = objectActivator.Index_Send;
+            if (int.TryParse(ClientDataManager.Instance.UserDetails.MainCharacterID, out int MainCharacterID))
             {
-                roomData.RoomId = createdRoom.Id;
-                //roomData.FakeHost = true;
-                roomData.PlayerIndex = 0;
-                roomData.CurrnetRoomNumber = createdRoom.RoomNumber;
-                roomData.CurrnetRoomName = createdRoom.RoomName;
-                roomData.CurrnetMaxRoomPNumber = createdRoom.MaxRoomPNumber;
-                roomData.CurrnetCurrentRoomPNumber = createdRoom.CurrentRoomPNumber;
-                roomData.CurrnetPassword = createdRoom.Password;
-                for(int i = 0; i < 4; i++)
+	    	/*변경 캐릭터가 현재 캐릭터와 동일할 경우 서버로 전송 안함
+      		다를 경우 서버로 전송*/
+                if(index + 1 == MainCharacterID)
                 {
-                    Item newItem = new Item
-                    {
-                        PlayerExist = false,
-                        FakeHost = true,
-                        PlayerNickname = null,
-                        PlayerLevel = 0,
-                        PlayerTexture = null,
-                        PlayerMainCharacterID = null,
-                        PlayerTopOutfitID = null,
-                        PlayerBottomOutfitID = null,
-                        PlayerShoesOutfitID = null,
-                        PlayerAllInOneOutfitID = null,
-                        Ready = false
-                    };
-                    roomData.inventory.Add(newItem);
+                    charthings.Log_panel.SetActive(true);
+                    EventSystem.current.SetSelectedGameObject(charthings.Log_panel_btn.gameObject);
+                }
+                else
+                {
+                    NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
+                    Change_MainCha(index, opponentIdentity, ClientDataManager.Instance.UserDetails.userID);
                 }
             }
-            NetworkServer.Spawn(RoomGameobject, ClientIdentity.connectionToClient);
-            roomData.PlayerObj = ClientIdentity.gameObject;
-            SceneManager.MoveGameObjectToScene(ClientIdentity.gameObject, loadedScene);
-            SceneManager.MoveGameObjectToScene(RoomGameobject, loadedScene);
-            TargetChangeScene(ClientIdentity.connectionToClient, "Ingame");
-            string roomDataJson = JsonConvert.SerializeObject(KihanaRoomManager.Instance.GetRooms());
-            TargetRoomCreationComplete(ClientIdentity.connectionToClient, roomDataJson);
-        });
-    }
-    
-    [TargetRpc]
-    private void TargetChangeScene(NetworkConnection target, string sceneName)
-    {
-        SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
-    }
-
-    [TargetRpc]
-    private void TargetRoomCreationComplete(NetworkConnection target, string roomDataJson)
-    {
-        Room_Cre_Panl.SetActive(false);
-        /*
-        if (isLocalPlayer)
-        {
-            Room_Cre_Panl.SetActive(false);
-            //Debug.Log("Room):CreDone!");
         }
-        else
-        {
-            List<Room> rooms = JsonConvert.DeserializeObject<List<Room>>(roomDataJson);
-            KihanaRoomManager.Instance.rooms = rooms;
-        }
-        */
     }
+    /*방 새로고침 시 서버로 요청해서 방 목록 불러옴*/
     private void ReLoadRooms()
     {
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
         CmdReLoadRooms(opponentIdentity);
     }
-    [Command]
-    private void CmdReLoadRooms(NetworkIdentity ClientIdentity)
-    {
-        string roomDataJson = JsonConvert.SerializeObject(KihanaRoomManager.Instance.GetRooms());
-        RpcReLoadRooms(ClientIdentity.connectionToClient, roomDataJson);
-    }
-    [TargetRpc]
-    private void RpcReLoadRooms(NetworkConnection target, string roomDataJson)
-    {
-        List<Room> rooms = JsonConvert.DeserializeObject<List<Room>>(roomDataJson);
-        KihanaRoomManager.Instance.rooms = rooms;
-        ForRoomCon_AtMain.UpdateRoomList();
-    }
-
+    /*비밀번호가 없는 방 입장 시 서버로 해당 방 정보를 보내서 입장 가능한지를 확인*/
     private void SendRoom(Room room)
     {
         Room_Enter_Panl.SetActive(true);
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
         CmdSendRoom(opponentIdentity, room);
     }
-    [Command]
-    private void CmdSendRoom(NetworkIdentity ClientIdentity, Room room)
-    {
-        Room existingRoom = KihanaRoomManager.Instance.rooms.FirstOrDefault(r => r.RoomNumber == room.RoomNumber);
-        if (existingRoom != null && existingRoom.Id == room.Id && existingRoom.RoomStart == false)
-        {
-            int occupiedSlots = existingRoom.PlayerSlots.Count(slot => slot == true);
-            bool isSlotAvailable = existingRoom.PlayerSlots.Any(slot => slot == false) && occupiedSlots < existingRoom.MaxRoomPNumber;
-            if (isSlotAvailable && occupiedSlots != 0)
-            {
-                int playerIndex = existingRoom.PlayerSlots.FindIndex(slot => slot == false);
-                if(existingRoom.Password == "" && playerIndex != -1)
-                {
-                    GameObject RoomGameobject = Instantiate(myNetworkRoomPrefab);
-                    RoomData roomData = RoomGameobject.GetComponent<RoomData>();
-                    if (roomData != null)
-                    {
-                        roomData.RoomId = existingRoom.Id;
-                        //roomData.FakeHost = false;
-                        roomData.PlayerIndex = playerIndex;
-                        roomData.CurrnetRoomNumber = existingRoom.RoomNumber;
-                        roomData.CurrnetRoomName = existingRoom.RoomName;
-                        roomData.CurrnetMaxRoomPNumber = existingRoom.MaxRoomPNumber;
-                        roomData.CurrnetCurrentRoomPNumber = existingRoom.CurrentRoomPNumber + 1;
-                        roomData.CurrnetPassword = existingRoom.Password;
-                        for(int i = 0; i < 4; i++)
-                        {
-                            Item newItem = new Item
-                            {
-                                PlayerExist = false,
-                                FakeHost = false,
-                                PlayerNickname = null,
-                                PlayerLevel = 0,
-                                PlayerTexture = null,
-                                PlayerMainCharacterID = null,
-                                PlayerTopOutfitID = null,
-                                PlayerBottomOutfitID = null,
-                                PlayerShoesOutfitID = null,
-                                PlayerAllInOneOutfitID = null,
-                                Ready = false
-                            };
-                            roomData.inventory.Add(newItem);
-                        }
-                    }
-                    NetworkServer.Spawn(RoomGameobject, ClientIdentity.connectionToClient);
-                    roomData.PlayerObj = ClientIdentity.gameObject;
-                    SceneManager.MoveGameObjectToScene(ClientIdentity.gameObject, existingRoom.RoomScene);
-                    SceneManager.MoveGameObjectToScene(RoomGameobject, existingRoom.RoomScene);
-                    TargetChangeScene(ClientIdentity.connectionToClient, "Ingame");
-                    existingRoom.CurrentRoomPNumber += 1;
-                    existingRoom.PlayerSlots[playerIndex] = true;
-                }
-                else if(existingRoom.Password != "" && playerIndex != -1)
-                {
-                    Enter_Room_Pass(ClientIdentity.connectionToClient, existingRoom);
-                }
-            }
-            else
-            {
-                string roomDataJson = JsonConvert.SerializeObject(KihanaRoomManager.Instance.GetRooms());
-                Enter_Room_Fail(ClientIdentity.connectionToClient, roomDataJson);
-            }
-        }
-        else
-        {
-            string roomDataJson = JsonConvert.SerializeObject(KihanaRoomManager.Instance.GetRooms());
-            Enter_Room_Fail(ClientIdentity.connectionToClient, roomDataJson);
-        }
-    }
-    [TargetRpc]
-    private void Enter_Room_Pass(NetworkConnection target, Room room)
-    {
-        Room_Enter_Panl.SetActive(false);
-        Room_Enter_Withpass_Panl.SetActive(true);
-        Room_Enter_Withpass_Button.onClick.RemoveAllListeners();
-        Room_Enter_Withpass_Button.onClick.AddListener(() => OnSubmitRoomPasswordClicked(room));
-    }
+    /*비밀번호가 있는 방 입장 시 서버로 해당 방 정보를 보내서 입장 가능한지를 확인*/
     private void OnSubmitRoomPasswordClicked(Room room)
     {
         string password = Room_Enter_Withpass_InputField.text;
@@ -793,116 +583,13 @@ public class MainLobby : NetworkBehaviour
         CmdSubmitRoomPass(opponentIdentity, password, room);
         Room_Enter_Panl.SetActive(true);
     }
-    [Command]
-    private void CmdSubmitRoomPass(NetworkIdentity ClientIdentity, string password, Room room)
-    {
-        Room existingRoom = KihanaRoomManager.Instance.rooms.FirstOrDefault(r => r.RoomNumber == room.RoomNumber);
-        if (existingRoom != null && existingRoom.Id == room.Id && existingRoom.RoomStart == false)
-        {
-            int occupiedSlots = existingRoom.PlayerSlots.Count(slot => slot == true);
-            bool isSlotAvailable = existingRoom.PlayerSlots.Any(slot => slot == false) && occupiedSlots < existingRoom.MaxRoomPNumber;
-            if (isSlotAvailable && occupiedSlots != 0)
-            {
-                int playerIndex = existingRoom.PlayerSlots.FindIndex(slot => slot == false);
-                if(existingRoom.Password == password && playerIndex != -1)
-                {
-                    GameObject RoomGameobject = Instantiate(myNetworkRoomPrefab);
-                    RoomData roomData = RoomGameobject.GetComponent<RoomData>();
-                    if (roomData != null)
-                    {
-                        roomData.RoomId = existingRoom.Id;
-                        //roomData.FakeHost = false;
-                        roomData.PlayerIndex = playerIndex;
-                        roomData.CurrnetRoomNumber = existingRoom.RoomNumber;
-                        roomData.CurrnetRoomName = existingRoom.RoomName;
-                        roomData.CurrnetMaxRoomPNumber = existingRoom.MaxRoomPNumber;
-                        roomData.CurrnetCurrentRoomPNumber = existingRoom.CurrentRoomPNumber + 1;
-                        roomData.CurrnetPassword = existingRoom.Password;
-                        for(int i = 0; i < 4; i++)
-                        {
-                            Item newItem = new Item
-                            {
-                                PlayerExist = false,
-                                FakeHost = false,
-                                PlayerNickname = null,
-                                PlayerLevel = 0,
-                                PlayerTexture = null,
-                                PlayerMainCharacterID = null,
-                                PlayerTopOutfitID = null,
-                                PlayerBottomOutfitID = null,
-                                PlayerShoesOutfitID = null,
-                                PlayerAllInOneOutfitID = null,
-                                Ready = false
-                            };
-                            roomData.inventory.Add(newItem);
-                        }
-                    }
-                    NetworkServer.Spawn(RoomGameobject, ClientIdentity.connectionToClient);
-                    roomData.PlayerObj = ClientIdentity.gameObject;
-                    SceneManager.MoveGameObjectToScene(ClientIdentity.gameObject, existingRoom.RoomScene);
-                    SceneManager.MoveGameObjectToScene(RoomGameobject, existingRoom.RoomScene);
-                    TargetChangeScene(ClientIdentity.connectionToClient, "Ingame");
-                    existingRoom.CurrentRoomPNumber += 1;
-                    existingRoom.PlayerSlots[playerIndex] = true;
-                }
-                else if(existingRoom.Password != password && playerIndex != -1)
-                {
-                    Enter_Room_Pass_Fail(ClientIdentity.connectionToClient);
-                }
-            }
-            else
-            {
-                string roomDataJson = JsonConvert.SerializeObject(KihanaRoomManager.Instance.GetRooms());
-                Enter_PassRoom_Fail(ClientIdentity.connectionToClient, roomDataJson);
-            }
-        }
-        else
-        {
-            string roomDataJson = JsonConvert.SerializeObject(KihanaRoomManager.Instance.GetRooms());
-            Enter_PassRoom_Fail(ClientIdentity.connectionToClient, roomDataJson);
-        }
-    }
-    [TargetRpc]
-    private void Enter_Room_Fail(NetworkConnection target, string roomDataJson)
-    {
-        Room_Enter_Panl.SetActive(false);
-        Room_Enter_Error_Panl.SetActive(true);
-        List<Room> rooms = JsonConvert.DeserializeObject<List<Room>>(roomDataJson);
-        KihanaRoomManager.Instance.rooms = rooms;
-        ForRoomCon_AtMain.UpdateRoomList();
-        if(UisoundManager != null)
-            UisoundManager.PlayWarringSound();
-    }
-    [TargetRpc]
-    private void Enter_PassRoom_Fail(NetworkConnection target, string roomDataJson)
-    {
-        Room_Enter_Withpass_Panl.SetActive(false);
-        Room_Enter_Panl.SetActive(false);
-        Room_Enter_Error_Panl.SetActive(true);
-        List<Room> rooms = JsonConvert.DeserializeObject<List<Room>>(roomDataJson);
-        KihanaRoomManager.Instance.rooms = rooms;
-        ForRoomCon_AtMain.UpdateRoomList();
-        if(UisoundManager != null)
-            UisoundManager.PlayWarringSound();
-    }
-    [TargetRpc]
-    private void Enter_Room_Pass_Fail(NetworkConnection target)
-    {
-        Room_Enter_Panl.SetActive(false);
-        Room_Enter_Error_Passwrong.SetActive(true);
-        if(UisoundManager != null)
-            UisoundManager.PlayWarringSound();
-    }
-    [TargetRpc]
-    public void TargetActivateRoomExitForced(NetworkConnection target)
-    {
-        StartCoroutine(WaitForSceneAndActivate());
-    }
+    
+    /*방에서 강제퇴장 당했을 경우 적용*/
     private IEnumerator WaitForSceneAndActivate()
     {
         while (SceneManager.GetActiveScene().name != "Ingame12")
         {
-            yield return null; // Wait until the next frame
+            yield return null;
         }
 
         if (Room_Exit_Forced != null)
@@ -912,6 +599,7 @@ public class MainLobby : NetworkBehaviour
                 UisoundManager.PlayWarringSound();
         }
     }
+    /*메시지 출력 담당*/
     private void HandleNewMessage(string message)
     {
         if (message.StartsWith("\n<color=#FFDA2F>"))
@@ -919,13 +607,17 @@ public class MainLobby : NetworkBehaviour
             var receivedWhisperMatch = Regex.Match(message, @"\[\d{2}:\d{2}\] <b>(.*?)<\/b>이 당신에게: ");
             if (receivedWhisperMatch.Success)
             {
+	    	/*"/r"로 다시 보내는 닉네임 저장*/
                 lastWhisperID = receivedWhisperMatch.Groups[1].Value;
             }
         }
+	/*현재 방이면 방으로 메시지 출력*/
         if(chatText == null && RoomchatText != null)
             RoomchatText.text += message;
+	/*로비면 로비로 메시지 출력*/
         if(chatText != null)
             chatText.text += message;
+	/*로비, 방이 아니면 messageBuffer에 해당 메시지들 최신순으로 30개 저장*/
         else
         {
             messageBuffer.Add(message);
@@ -935,26 +627,27 @@ public class MainLobby : NetworkBehaviour
             }
         }
     }
-
+    /*메시지 30초간 제한, 남은 시간을 출력하기 위해 restrictionTime = 30f을 종료 후로 적용*/
     private IEnumerator RestrictMessaging()
     {
-        messageenabled = false; // 30초 동안 메시지 전송 비활성화
+        messageenabled = false;
         while (restrictionTime > 0)
         {
             yield return new WaitForSeconds(1f);
             restrictionTime--;
         }
         restrictionTime = 30f;
-        messageenabled = true; // 전송 가능하게 다시 활성화
+        messageenabled = true;
     }
 
-    [Client]
+    /*메시지 전송*/
     public void Send(string message)
     {
         if(!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) { return; }
         
         if(string.IsNullOrWhiteSpace(message)) { return; }
 
+ 	/*1.메시지제한 : 트래픽 과부하일 경우*/
         if(!messageenabled)
         {
             HandleNewMessage($"\n<color=#FF3B48>메시지 제한! {restrictionTime}초 후 전송 가능</color=#FF3B48>");
@@ -962,6 +655,7 @@ public class MainLobby : NetworkBehaviour
             chatInputField.ActivateInputField();
             return;
         }
+	/*2.메시지제한 : 운영자가 직접 벤한 경우*/
         if(ClientDataManager.Instance.ChatBan)
         {
             HandleNewMessage($"\n<color=#FF3B48>                             ----- 메시지 제한! -----</color=#FF3B48>");
@@ -971,6 +665,7 @@ public class MainLobby : NetworkBehaviour
         }
 
         float currentTime = Time.time;
+	/*1초 안에 3번 이상 메시지를 보낼 경우 채팅금지 적용*/
         if (currentTime - lastMessageTime < 1f)
         {
             messageCount++;
@@ -993,7 +688,7 @@ public class MainLobby : NetworkBehaviour
         bool isWhisper = trimmedMessage.StartsWith("/w ") || trimmedMessage.StartsWith("/Whisper ")
         || trimmedMessage.StartsWith("/귓 ") || trimmedMessage.StartsWith("/msg ");
 
-
+	/*채팅에서 비속어는 "#"으로 가려서 출력*/
         foreach (var profanity in profanitiesList)
         {
             if (message.Contains(profanity, StringComparison.OrdinalIgnoreCase))
@@ -1002,10 +697,10 @@ public class MainLobby : NetworkBehaviour
                 message = Regex.Replace(message, profanity, replacement, RegexOptions.IgnoreCase);
             }
         }
-        
+
         if (isWhisper)
         {
-            // Handle sending a whisper here
+	    /*귓속말인 경우 "/msg park 메시지"이면 Target은 park, message는 메시지로 Split 후 서버로 전송*/
             string[] splitMessage = trimmedMessage.Split(new char[] { ' ' }, 3);
             if (splitMessage.Length >= 3)
             {
@@ -1016,21 +711,22 @@ public class MainLobby : NetworkBehaviour
         }
         else
         {
-            // Regular message send
+	    /*일반 메시지일 경우*/
             CmdSendMessage(message, ClientDataManager.Instance.UserDetails.Nickname);
         }
+	/*방향키 위를 눌렀으 때 이전 메시지를 다시 입력해주는 기능 최대 3개를 저장*/
         if (messageHistory.Count >= 3)
         {
-            messageHistory.RemoveAt(0); // Remove the oldest message
+            messageHistory.RemoveAt(0);
         }
         messageHistory.Add(message);
         currentHistoryIndex = messageHistory.Count;
 
+	/*기존 채팅이 남아있는 것과 채팅을 한번 치고 나면 필드를 벗어나는걸 방지*/
         chatInputField.text = string.Empty;
-
         chatInputField.ActivateInputField();
     }
-    [Client]
+    /*방에서의 채팅 전송(방에서의 메시지가 다른 방과 로비에서 적용안되게 하기 위해 분리) - 통합 필요*/
     private void RoomChatSend(string message)
     {
         if(!Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter)) { return; }
@@ -1112,113 +808,18 @@ public class MainLobby : NetworkBehaviour
 
         RoomchatInputField.ActivateInputField();
     }
-    [Command]
-    private void CmdSendMessage(string message, string nickname)
-    {
-        string currentTime = DateTime.Now.ToString("HH:mm");
-        RpcHandleMessage($"[{currentTime}] {nickname}: {message}");
-    }
-    [Command]
-    private void CmdSendWhisper(string target, string message, string nickname)
-    {
-        string currentTime = DateTime.Now.ToString("HH:mm");
-        
-        NetworkConnectionToClient targetConnection = FindPlayerConnection(target);
-        if (targetConnection != null)
-        {
-            if(target != nickname)
-            {
-                TargetReceiveWhisper(connectionToClient, $"<color=#FFDA2F>[{currentTime}] 당신이 <b>{target}</b>에게: {message}</color>");
-                foreach (var player in targetConnection.owned)
-                {
-                    MainLobby mainlobby = player.GetComponent<MainLobby>();
-                    if (mainlobby != null)
-                    {
-                        player.GetComponent<MainLobby>()?.TargetReceiveWhisper(targetConnection, $"<color=#FFDA2F>[{currentTime}] <b>{nickname}</b>이 당신에게: {message}</color>");
-                    }
-                }
-                
-                //TargetReceiveWhisper(targetConnection, $"<color=#FFDA2F>[{currentTime}] <b>{nickname}</b>이 당신에게: {message}</color>");
-            }
-            else if(target == nickname)
-                TargetReceiveWhisper(connectionToClient, $"<color=#FF3B48>[{currentTime}] 자신에게 귓속말을 보낼 수 없습니다.</color>");
-        }
-        else
-        {
-            if(target != nickname)
-            {
-                string steamid_Get = FindPlayerSteamID(target);
-                //Debug.Log("ToGame");
-                if(steamid_Get != null)
-                {
-                    var ChatRegi = FindObjectOfType<Insight.ChatServer>();
-                    if (ChatRegi != null)
-                    {
-                        TargetReceiveWhisper(connectionToClient, $"<color=#FFDA2F>[{currentTime}] 당신이 <b>{target}</b>에게: {message}</color>");
-                        ChatRegi.SendChatToGame(steamid_Get, $"<color=#FFDA2F>[{currentTime}] <b>{nickname}</b>이 당신에게: {message}</color>");
-                    }
-                    else
-                        TargetReceiveWhisper(connectionToClient, $"<color=#FF3B48>[{currentTime}] 메시지 전송에 실패하였습니다.</color>");
-                }
-                else
-                {
-                    TargetReceiveWhisper(connectionToClient, $"<color=#FF3B48>[{currentTime}] <b>{target}</b>을 찾을 수 없습니다.</color>");
-                }
-            }
-            else
-            {
-                TargetReceiveWhisper(connectionToClient, $"<color=#FF3B48>[{currentTime}] <b>{target}</b>을 찾을 수 없습니다.</color>");
-            }
-        }
-        
-    }
     private void LoadProfanities()
     {
         string[] profanities = Resources.Load<TextAsset>("profanities").text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         profanitiesList.AddRange(profanities);
     }
-    [ClientRpc]
-    private void RpcHandleMessage(string message)
-    {
-        OnMessage?.Invoke($"\n{message}");
-    }
-    [TargetRpc]
-    public void TargetReceiveWhisper(NetworkConnection target, string message)
-    {
-        ReceiveWhisper(message);
-    }
+    /*귓속말을 받은 경우 OnMessage를 통해 메시지를 출력*/
     private void ReceiveWhisper(string message)
     {
         string coloredMessage = $"{message}";
         OnMessage?.Invoke($"\n{coloredMessage}");
     }
-    private NetworkConnectionToClient FindPlayerConnection(string nickname)
-    {
-        foreach (var conn in NetworkServer.connections.Values)
-        {
-            if (conn != null)
-            {
-                ServerDataManger dataManager = conn.identity.GetComponent<ServerDataManger>();
-                if (dataManager != null && dataManager.playerName.Equals(nickname, StringComparison.OrdinalIgnoreCase))
-                {
-                    return conn;
-                }
-            }
-        }
-        return null;
-    }
-    private string FindPlayerSteamID(string nickname)
-    {
-        ServerDataManger[] allDataManagers = FindObjectsOfType<ServerDataManger>();
-        foreach (ServerDataManger dataManager in allDataManagers)
-        {
-            if (dataManager.playerName.Equals(nickname, StringComparison.OrdinalIgnoreCase))
-            {
-                return dataManager.SteamID_; // Assuming steamid_ is of type ulong in your ServerDataManager
-            }
-        }
-        return null; // Return 0 or an appropriate default value indicating not found
-    }
+    /*"/r park "입력 시 "/msg park "으로 필드 값 변경*/
     private void HandleInputFieldChange()
     {
         string text = chatInputField.text;
@@ -1235,12 +836,12 @@ public class MainLobby : NetworkBehaviour
                 {
                     chatInputField.text = $"/msg ";
                 }
-                //chatInputField.text = $"/msg {lastWhisperID} ";
                 chatInputField.Select();
                 chatInputField.MoveTextEnd(false);
             }
         }
     }
+    /*동일한 코드(방에서 사용) - 통합 필요*/
     private void HandleRoomInputFieldChange()
     {
         string text = RoomchatInputField.text;
@@ -1257,12 +858,12 @@ public class MainLobby : NetworkBehaviour
                 {
                     RoomchatInputField.text = $"/msg ";
                 }
-                //chatInputField.text = $"/msg {lastWhisperID} ";
                 RoomchatInputField.Select();
                 RoomchatInputField.MoveTextEnd(false);
             }
         }
     }
+    /*Char 씬에서 의상 변경 사항을 서버로 전송*/
     private void HandleSendCloth(string info)
     {
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
@@ -1273,28 +874,8 @@ public class MainLobby : NetworkBehaviour
         string description = values[3];
         Change_ChaCloths(opponentIdentity, characterNum, type, outfitID, ClientDataManager.Instance.UserDetails.userID);
     }
-    [Command]
-    private void Change_ChaCloths(NetworkIdentity ClientIdentity, int chaNum, string type, int OutfitID, string UId)
-    {
-        mainLobbyServer.StartCoroutine(mainLobbyServer.UpdateChaCloth(ClientIdentity, chaNum, type, OutfitID, UId));
-    }
-    [TargetRpc]
-    public void ChaClothsDataSendToClient(NetworkConnectionToClient target, bool sucfail, int chaNum, string type, int OutfitID)
-    {
-        if(sucfail == true)
-        {
-            string outfitIDStr = OutfitID.ToString();
-            ClientDataManager.Instance.UpdateCharacterOutfit(chaNum, type, outfitIDStr);
-        }
-        else
-        {
-            Cus_Log_panel_fail.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Cus_Log_panel_fail_btn.gameObject);
-            if(UisoundManager != null)
-                UisoundManager.PlayWarringSound();
-        }
-    }
 
+    /*Shop 씬에서 구매 의상을 팝업을 띄워 상세 정보를 확인, 결제를 캐시와 인게임재화 중 어떤 것으로 선택할지 정할 수 있음*/
     private void HandleSendItem(string info)
     {
         string[] values = info.Split(';');
@@ -1302,8 +883,8 @@ public class MainLobby : NetworkBehaviour
         string type = values[1];
         string description = values[2];
         string ItemName = values[3];
+	/*CP,1000&BP,2000와 같은 값을 ["CP,1000", "BP,2000"]으로 나눈 뒤 다시 분리하여 type과 price로 저장*/
         string[] priceEntries = values[4].Split('&');
-        //Debug.Log($"Price Entries: {string.Join(", ", priceEntries)}");
         List<PriceData> prices = priceEntries.Select(entry => {
             string[] priceInfo = entry.Split(',');
             return new PriceData { price_Type = priceInfo[0], price = int.Parse(priceInfo[1]) };
@@ -1313,6 +894,7 @@ public class MainLobby : NetworkBehaviour
         Sprite itemSprite_Item = Resources.Load<Sprite>($"Images/{description}");
         Shop_outfitImage.sprite = itemSprite_Item;
 
+ 	/*기본 옵션을 제거한 후 드롭다운에 가격 정보를 기입*/
         Shop_dropdown.ClearOptions();
         List<TMP_Dropdown.OptionData> dropdownOptions = new List<TMP_Dropdown.OptionData>();
         foreach (var priceData in prices)
@@ -1323,15 +905,17 @@ public class MainLobby : NetworkBehaviour
             TMP_Dropdown.OptionData optionData = new TMP_Dropdown.OptionData(optionText, optionImage);
             dropdownOptions.Add(optionData);
         }
+	/*드롭다운 옵션을 적용, 초기 값들 출력*/
         Shop_dropdown.AddOptions(dropdownOptions);
         Shop_textCost.text = Shop_dropdown.options[Shop_dropdown.value].text;
         Shop_CostImage.sprite = Shop_dropdown.options[Shop_dropdown.value].image;
         Shop_toggle.isOn = true;
+	/*버튼 클릭 시 해당 값으로 서버에 전송할 수 있게 값을 저장*/
         UpdateButtonBuyValues(characterNum, type, 
         description, ItemName, Shop_textCost.text, Shop_CostImage.sprite.name, Shop_toggle.isOn);
         buy_MainPanel.SetActive(true);
     }
-
+    /*드롭다운으로 값을 변경했을 때 팝업에서 출력값 변경 및 값 저장*/
     private void DropdownValueChanged(TMP_Dropdown dropdown)
     {
         string selectedOptionText = dropdown.options[dropdown.value].text;
@@ -1340,17 +924,20 @@ public class MainLobby : NetworkBehaviour
         UpdateButtonBuyValues(Shop_characterNum, Shop_type, 
         Shop_description, Shop_itemName, Shop_textCost.text, Shop_CostImage.sprite.name, Shop_isWorn);
     }
+    /*구매 후 바로 입을지를 위한 Toggle값 변경*/
     private void ToggleValueChanged(bool isOn)
     {
         Shop_isWorn = isOn;
         UpdateButtonBuyValues(Shop_characterNum, Shop_type, Shop_description, Shop_itemName, Shop_price, Shop_priceType, Shop_isWorn);
     }
+    /*구매할 아이템의 값을 저장*/
     private void UpdateButtonBuyValues(int chaNum, string t, string desc, string iName, string p, string pType, bool worn)
     {
         Shop_characterNum = chaNum;
         Shop_type = t;
         Shop_description = desc;
         Shop_itemName = iName;
+	/*표기형식이 N0인 것을 파싱하여 저장*/
         if (int.TryParse(p, System.Globalization.NumberStyles.AllowThousands | System.Globalization.NumberStyles.Integer, null, out int shopPrice))
         {
             Shop_price = shopPrice.ToString();
@@ -1358,6 +945,7 @@ public class MainLobby : NetworkBehaviour
         Shop_priceType = pType;
         Shop_isWorn = worn;
     }
+    /*구매 확정 시 서버로 저장된 값들 전송*/
     void OnButtonItemBuy(int ChaNum, string Type, string Description, string ItemName, string Price, string Price_Type, bool isWorn)
     {
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
@@ -1365,81 +953,7 @@ public class MainLobby : NetworkBehaviour
         buy_MainPanel.SetActive(false);
         BuyButton_Check(opponentIdentity, ChaNum, Type, Description, ItemName, Price, Price_Type, isWorn, ClientDataManager.Instance.UserDetails.userID);
     }
-    [Command]
-    private void BuyButton_Check(NetworkIdentity ClientIdentity, int ChaNum, string Type, string Description, string ItemName, string Price, string Price_Type, bool isWorn, string UId)
-    {
-        var matchingOutfits = outfitDataList.outfits.Where(outfit => 
-            outfit.outfitName == ItemName && 
-            outfit.outfit_Type == Type && 
-            outfit.CharaterNum == ChaNum && 
-            outfit.image.name == Description).ToList();
-
-        if (matchingOutfits.Count == 1)
-        {
-            var outfit = matchingOutfits[0];
-            //Debug.Log($"Character Number: {ChaNum}, Type: {Type}, Description: {Description}, Item Name: {ItemName}, Price: {Price}, Price Type: {Price_Type}, Is Worn: {isWorn}");
-
-            mainLobbyServer.StartCoroutine(mainLobbyServer.Buy_Items(ClientIdentity, ChaNum, Type, Description, Price_Type, Price, isWorn, UId));
-        }
-    }
-    [TargetRpc]
-    public void ItemDataSendToClient(NetworkConnectionToClient target, bool ItemExist, bool EnoughPoint, bool WornDone, int CP, int BP)
-    {
-        NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
-        if(ItemExist && !EnoughPoint)
-        {
-            
-            scrollController_shop.ActivateObject(scrollController_shop.currentIndexList);
-            ClientDataManager.Instance.CostUpdate(CP, BP);
-            scrollController_shop.ReLoadPoint();
-            Shop_Log_Fail.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Shop_Log_Fail_btn.gameObject);
-            if(UisoundManager != null)
-                UisoundManager.PlayWarringSound();
-        }
-        else if(!ItemExist && !EnoughPoint)
-        {
-
-            scrollController_shop.ActivateObject(scrollController_shop.currentIndexList);
-            ClientDataManager.Instance.CostUpdate(CP, BP);
-            scrollController_shop.ReLoadPoint();
-            Shop_Log_Fail2.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Shop_Log_Fail_btn2.gameObject);
-            if(UisoundManager != null)
-                UisoundManager.PlayWarringSound();
-        }
-        else if(!ItemExist && EnoughPoint)
-        {
-            scrollController_shop.ActivateObject(scrollController_shop.currentIndexList);
-            ClientDataManager.Instance.CostUpdate(CP, BP);
-            scrollController_shop.ReLoadPoint();
-
-            if(WornDone)
-            {
-                scrollController_shop.ReLoadCha();
-            }
-            Shop_Log_Success.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Shop_Log_Success_btn.gameObject);
-            if(UisoundManager != null)
-                UisoundManager.PlayBuySound();
-        }
-    }
-
-    [TargetRpc]
-    public void CharacterDataSendToClient(NetworkConnectionToClient target, SteamLobby_Server.CharactersResponse response)
-    {
-        ClientDataManager.Instance.UpdateCharacterData(response);
-    }
-    [TargetRpc]
-    public void OutfitDataSendToClient(NetworkConnectionToClient target, SteamLobby_Server.OutfitsResponse response)
-    {
-        ClientDataManager.Instance.UpdateOutfitData(response);
-    }
-    [TargetRpc]
-    public void AccDataSendToClient(NetworkConnectionToClient target, SteamLobby_Server.AccessoriesResponse response)
-    {
-        ClientDataManager.Instance.UpdateAccessoriesData(response);
-    }
+    
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -1450,6 +964,7 @@ public class MainLobby : NetworkBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    /*씬에 따라 Initialize 실행*/
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if(scene.name == "Ingame12")
@@ -1479,7 +994,7 @@ public class MainLobby : NetworkBehaviour
     void Update()
     {
         if (!isClient) return;
-        
+        /*채팅 인풋필드가 선택되어 있고 위 방향키를 누를 때 전에 전송한 메시지 인풋필드에 입력*/
         if(RoomchatInputField != null && RoomchatInputField.isFocused && Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (messageHistory.Count > 0)
@@ -1490,7 +1005,8 @@ public class MainLobby : NetworkBehaviour
                     currentHistoryIndex = messageHistory.Count - 1;
                 }
                 RoomchatInputField.text = messageHistory[currentHistoryIndex];
-                RoomchatInputField.caretPosition = RoomchatInputField.text.Length; // Move the cursor to the end of the text
+		/*이렇게 입력값을 변경했을 경우 커서가 첫번째 칸에 머물러 있어서 마지막 위치로 이동시킴*/
+                RoomchatInputField.caretPosition = RoomchatInputField.text.Length;
             }
         }
         else if(chatInputField != null && chatInputField.isFocused && Input.GetKeyDown(KeyCode.UpArrow))
