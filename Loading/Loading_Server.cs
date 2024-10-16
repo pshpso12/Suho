@@ -14,8 +14,8 @@ using Insight;
 /*동작을 쉽게 보기위해 포트폴리오에서는 서버동작과 클라이언트동작을 합쳐두었습니다.*/
 public class Loading_Server : NetworkBehaviour
 {
-		/*클라이언트로 부터 버전 정보를 받고 동일한지 확인합니다.*/
-		[Command]
+    /*클라이언트로 부터 버전 정보를 받고 동일한지 확인합니다.*/
+    [Command]
     private void CmdSendGameVersionString(string GVersion)
     {
         if(GameVersionString == GVersion)
