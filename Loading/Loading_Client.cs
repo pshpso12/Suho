@@ -13,7 +13,7 @@ using Insight;
 
 public class Loading_Client : NetworkBehaviour
 {
-		void Start()
+    void Start()
     {
         if(isClient)
             DontDestroyOnLoad(this);
@@ -21,8 +21,8 @@ public class Loading_Client : NetworkBehaviour
         {
             if (cursorTexture != null)
             {
-		            /*Default Cursor 사용 시 인게임에서 cusror 애니메이션 사용 시 
-		            Default Cursor가 한 프레임 적용되서 SetCursor 이용*/
+		/*Default Cursor 사용 시 인게임에서 cusror 애니메이션 사용 시 
+		Default Cursor가 한 프레임 적용되서 SetCursor 이용*/
                 Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
             }
             
@@ -45,10 +45,10 @@ public class Loading_Client : NetworkBehaviour
             AddButtonListeners(Nick_Logsuccess1_btn, false, true, 3);
             AddButtonListeners(Nick_Logsuccess2_btn, false, true, 2);
 						
-						/*닉네임 비속어 체크를 위한 리소스 로드*/
+	    /*닉네임 비속어 체크를 위한 리소스 로드*/
             LoadProfanities();
 						
-						/*Steam 확인*/
+	    /*Steam 확인*/
             if (!SteamManager.Initialized)
             {
                 Debug.LogError("Steam is NOT initialized");
@@ -77,11 +77,11 @@ public class Loading_Client : NetworkBehaviour
             }
             clientAuth.SendLoginMsg(steamID.ToString(), "");
 						
-						/*Cliet의 버전과 Server의 버전이 동일한지를 확인하기 위해 
-						현재 Client의 버전을 서버로 전송합니다.*/
+	    /*Cliet의 버전과 Server의 버전이 동일한지를 확인하기 위해 
+	    현재 Client의 버전을 서버로 전송합니다.*/
             CmdSendGameVersionString(GameVersionString);
 						
-						/*Steam에서 유저가 해당 게임을 보유 중인지 확인합니다.*/
+	    /*Steam에서 유저가 해당 게임을 보유 중인지 확인합니다.*/
             AppId_t gameAppID = new AppId_t(XXXXXXXX);
             bool ownsGame = SteamApps.BIsSubscribedApp(gameAppID);
             if (!ownsGame)
@@ -181,8 +181,8 @@ public class Loading_Client : NetworkBehaviour
     /*클라이언트 접속시 수행하는 작업*/
     private IEnumerator CheckGameVersion()
     {
-		    /*로고 동영상이 4초 가량 재생된 후에 작업이 시작되어야하기 때문에
-		    4.5f를 기다린 후 로고 동영상 오브젝트 끄기*/
+	/*로고 동영상이 4초 가량 재생된 후에 작업이 시작되어야하기 때문에
+	4.5f를 기다린 후 로고 동영상 오브젝트 끄기*/
         yield return new WaitForSeconds(4.5f);
         panel_Logo.SetActive(false);
         
@@ -215,8 +215,8 @@ public class Loading_Client : NetworkBehaviour
     /*기존 접속이 있는지 여부 확인*/
     private IEnumerator CheckExist()
     {
-		    /*화면 전환이 바로 이루어질 경우 시각적으로 부자연스러워 검은화면 alpha 값을 
-		    통해 Fadein 효과 추가*/
+	/*화면 전환이 바로 이루어질 경우 시각적으로 부자연스러워 검은화면 alpha 값을 
+	통해 Fadein 효과 추가*/
         float alpha = panel_First.GetComponentInChildren<Image>().color.a;
         Color fadeColor = Color.black;
         while (alpha > 0)
@@ -278,9 +278,9 @@ public class Loading_Client : NetworkBehaviour
         }
     }
 
-    		void Update()
+    void Update()
     {
-		    /*씬 로드 완료, 유저정보 불러오기 완료 시를 확인 후 다음 진행*/
+	/*씬 로드 완료, 유저정보 불러오기 완료 시를 확인 후 다음 진행*/
         if (isSceneLoaded && isUserDataUpdated_1 && !coroutineStarted)
         {
             coroutineStarted = true;
@@ -290,12 +290,12 @@ public class Loading_Client : NetworkBehaviour
     
     private IEnumerator HandleLoadingProcess()
     {
-		    /*유저정보가 있는 경우 로비 씬으로 이동*/
+	/*유저정보가 있는 경우 로비 씬으로 이동*/
         if (ClientDataManager.Instance.UserDetails.exists)
         {
-		        /*FillSlider와 로딩바를 2초 동안 채우는 코드
-		        FadeinCanvas는 검은화면을 alpha값 조정으로 Fadein을 구현한 코드이며
-		        포트폴리오에는 첨부하지 않았습니다.*/
+	    /*FillSlider와 로딩바를 2초 동안 채우는 코드
+	    FadeinCanvas는 검은화면을 alpha값 조정으로 Fadein을 구현한 코드이며
+	    포트폴리오에는 첨부하지 않았습니다.*/
             StartCoroutine(FillSlider(2));
             yield return new WaitUntil(() => LoadingSldier.value == 1f);
             yield return fade_inout.StartCoroutine(fade_inout.FadeinCanvas(10));
