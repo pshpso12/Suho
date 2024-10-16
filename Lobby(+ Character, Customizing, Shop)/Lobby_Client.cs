@@ -19,7 +19,7 @@ public class MainLobby : NetworkBehaviour
     private Char_Things charthings;
     private Cus_Things custhings;
     private Shop_Things shopthings;
-    private Purchases_Things purchaseshings;
+    private Purchases_Things purchasethings;
     private List<string> profanitiesList = new List<string>();
     private List<string> messageBuffer = new List<string>();
     private const int maxMessageCount = 30;
@@ -308,75 +308,63 @@ public class MainLobby : NetworkBehaviour
     void PurChaseLoad()
     {
         List<int> PurchaseList = new List<int> { 0, 0, 0, 0, 0};
-
-        Purchases_Button = GameObject.Find("Ui_Overone/Purchases_Btn").GetComponent<Button>();
-        Purchase_MainPanel = GameObject.Find("Canvas/Purchase_Panel");
-        Purchase_Panel = GameObject.Find("Canvas/Purchase_Panel/Purchase_Main/Panel");
-        Purchase_textCost = Purchase_Panel.transform.Find("Text_Cost").GetComponent<TMP_Text>();
-        Purchase_BuySuccess = Purchase_Panel.transform.Find("BuyCheck_Panel/Buy_success/Panel/LastBuy_success_btn_yes").GetComponent<Button>();
-        Purchase_BuyFail = Purchase_Panel.transform.Find("BuyCheck_Panel/Buy_fail/Panel/LastBuy_success_btn_yes").GetComponent<Button>();
-        PurchaseCheckLast_Panel = Purchase_Panel.transform.Find("BuyCheck_Panel").gameObject;
-        PurchaseCheckReal_Panel = PurchaseCheckLast_Panel.transform.Find("Buy_success").gameObject;
-        PurchaseCheckRealFail_Panel = PurchaseCheckLast_Panel.transform.Find("Buy_fail").gameObject;
-
-
-        Purchases_Button1000 = Purchase_Panel.transform.Find("Purchase1000").GetComponent<Button>();
-        Purchases_Button5000 = Purchase_Panel.transform.Find("Purchase5000").GetComponent<Button>();
-        Purchases_Button10000 = Purchase_Panel.transform.Find("Purchase10000").GetComponent<Button>();
-        Purchases_Button50000 = Purchase_Panel.transform.Find("Purchase50000").GetComponent<Button>();
-        Purchases_Button100000 = Purchase_Panel.transform.Find("Purchase100000").GetComponent<Button>();
-        Purchases_ButtonReset = Purchase_Panel.transform.Find("PurchaseReset").GetComponent<Button>();
+	purchasethings = GameObject.Find("purchase_Object").GetComponent<Purchases_Things>();
 
         int totalCost = 0;
 
-        Purchases_Button.onClick.AddListener(() => {
+ 	/*충전 버튼 클릭 시 총합을 0으로 설정*/
+        purchasethings.Purchases_Button.onClick.AddListener(() => {
             PurchaseList = new List<int> { 0, 0, 0, 0, 0};
             totalCost = 0;
-            Purchase_textCost.text = totalCost.ToString("N0");
-            Purchase_MainPanel.SetActive(true);
+            purchasethings.Purchase_textCost.text = totalCost.ToString("N0");
+            purchasethings.Purchase_MainPanel.SetActive(true);
         });
 
-        Purchases_Button1000.onClick.AddListener(() => {
+	/*각 버튼에 따라 값 추가*/
+        purchasethings.Purchases_Button1000.onClick.AddListener(() => {
             PurchaseList[0] += 1;
             totalCost += 1000;
-            Purchase_textCost.text = totalCost.ToString("N0");
+            purchasethings.Purchase_textCost.text = totalCost.ToString("N0");
         });
 
-        Purchases_Button5000.onClick.AddListener(() => {
+        purchasethings.Purchases_Button5000.onClick.AddListener(() => {
             PurchaseList[1] += 1;
             totalCost += 5000;
-            Purchase_textCost.text = totalCost.ToString("N0");
+            purchasethings.Purchase_textCost.text = totalCost.ToString("N0");
         });
 
-        Purchases_Button10000.onClick.AddListener(() => {
+        purchasethings.Purchases_Button10000.onClick.AddListener(() => {
             PurchaseList[2] += 1;
             totalCost += 10000;
-            Purchase_textCost.text = totalCost.ToString("N0");
+            purchasethings.Purchase_textCost.text = totalCost.ToString("N0");
         });
 
-        Purchases_Button50000.onClick.AddListener(() => {
+        purchasethings.Purchases_Button50000.onClick.AddListener(() => {
             PurchaseList[3] += 1;
             totalCost += 50000;
-            Purchase_textCost.text = totalCost.ToString("N0");
+            purchasethings.Purchase_textCost.text = totalCost.ToString("N0");
         });
 
-        Purchases_Button100000.onClick.AddListener(() => {
+        purchasethings.Purchases_Button100000.onClick.AddListener(() => {
             PurchaseList[4] += 1;
             totalCost += 100000;
-            Purchase_textCost.text = totalCost.ToString("N0");
+            purchasethings.Purchase_textCost.text = totalCost.ToString("N0");
         });
 
-        Purchases_ButtonReset.onClick.AddListener(() => {
+ 	/*Reset시 값 초기화*/
+        purchasethings.Purchases_ButtonReset.onClick.AddListener(() => {
             PurchaseList = new List<int> { 0, 0, 0, 0, 0 };
             totalCost = 0;
-            Purchase_textCost.text = totalCost.ToString("N0");
+            purchasethings.Purchase_textCost.text = totalCost.ToString("N0");
         });
         
-        Button PurChaseCheck = Purchase_Panel.transform.Find("Buy_success_btn_yes").GetComponent<Button>();
-        PurChaseCheck.onClick.AddListener(() => {
+        Button PurChaseCheck = purchasethings.Purchase_Panel.transform.Find("Buy_success_btn_yes").GetComponent<Button>();
+
+	/*결제 요청 시 PurchaseList값을 합해서 전송*/
+	PurChaseCheck.onClick.AddListener(() => {
             if(totalCost != 0)
             {
-                PurchaseCheckLast_Panel.SetActive(true);
+                purchasethings.PurchaseCheckLast_Panel.SetActive(true);
                 NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
                 CSteamID steamID = SteamUser.GetSteamID();
                 int Sumpurchase = CalculateSumPurchase(PurchaseList);
@@ -384,74 +372,60 @@ public class MainLobby : NetworkBehaviour
             }
         });
 
-        Purchase_BuySuccess.onClick.AddListener(() => {
-            PurchaseCheckReal_Panel.SetActive(false);
-            PurchaseCheckRealFail_Panel.SetActive(false);
-            PurchaseCheckLast_Panel.SetActive(false);
-            Purchase_MainPanel.SetActive(false);
+        purchasethings.Purchase_BuySuccess.onClick.AddListener(() => {
+            purchasethings.PurchaseCheckReal_Panel.SetActive(false);
+            purchasethings.PurchaseCheckRealFail_Panel.SetActive(false);
+            purchasethings.PurchaseCheckLast_Panel.SetActive(false);
+            purchasethings.Purchase_MainPanel.SetActive(false);
         });
-        Purchase_BuyFail.onClick.AddListener(() => {
-            PurchaseCheckReal_Panel.SetActive(false);
-            PurchaseCheckRealFail_Panel.SetActive(false);
-            PurchaseCheckLast_Panel.SetActive(false);
-            Purchase_MainPanel.SetActive(false);
-        });
-
-        Purchase_Log_Success = GameObject.Find("Purchase_success_1");
-        Purchase_Log_Success_btn = Purchase_Log_Success.transform.Find("Panel/Buy_success_btn").GetComponent<Button>();
-        
-        Purchase_Log_Fail = GameObject.Find("Purchase_fail_1");
-        Purchase_Log_Fail_btn = Purchase_Log_Fail.transform.Find("Panel/Buy_success_btn").GetComponent<Button>();
-
-        Purchase_Log_Fail2 = GameObject.Find("Purchase_fail_2");
-        Purchase_Log_Fail2_btn = Purchase_Log_Fail.transform.Find("Panel/Buy_success_btn").GetComponent<Button>();
-
-        Purchase_Log_Success_btn.onClick.AddListener(() => {
-            Purchase_Log_Success.SetActive(false);
-            PurchaseCheckReal_Panel.SetActive(false);
-            PurchaseCheckRealFail_Panel.SetActive(false);
-            PurchaseCheckLast_Panel.SetActive(false);
-            Purchase_MainPanel.SetActive(false);
+        purchasethings.Purchase_BuyFail.onClick.AddListener(() => {
+            purchasethings.PurchaseCheckReal_Panel.SetActive(false);
+            purchasethings.PurchaseCheckRealFail_Panel.SetActive(false);
+            purchasethings.PurchaseCheckLast_Panel.SetActive(false);
+            purchasethings.Purchase_MainPanel.SetActive(false);
         });
 
-        Purchase_Log_Fail_btn.onClick.AddListener(() => {
-            Purchase_Log_Fail.SetActive(false);
-            PurchaseCheckReal_Panel.SetActive(false);
-            PurchaseCheckRealFail_Panel.SetActive(false);
-            PurchaseCheckLast_Panel.SetActive(false);
-            Purchase_MainPanel.SetActive(false);
+        purchasethings.Purchase_Log_Success_btn.onClick.AddListener(() => {
+            purchasethings.Purchase_Log_Success.SetActive(false);
+            purchasethings.PurchaseCheckReal_Panel.SetActive(false);
+            purchasethings.PurchaseCheckRealFail_Panel.SetActive(false);
+            purchasethings.PurchaseCheckLast_Panel.SetActive(false);
+            purchasethings.Purchase_MainPanel.SetActive(false);
         });
 
-        Purchase_Log_Fail2_btn.onClick.AddListener(() => {
-            Purchase_Log_Fail2.SetActive(false);
-            PurchaseCheckReal_Panel.SetActive(false);
-            PurchaseCheckRealFail_Panel.SetActive(false);
-            PurchaseCheckLast_Panel.SetActive(false);
-            Purchase_MainPanel.SetActive(false);
+        purchasethings.Purchase_Log_Fail_btn.onClick.AddListener(() => {
+            purchasethings.Purchase_Log_Fail.SetActive(false);
+            purchasethings.PurchaseCheckReal_Panel.SetActive(false);
+            purchasethings.PurchaseCheckRealFail_Panel.SetActive(false);
+            purchasethings.PurchaseCheckLast_Panel.SetActive(false);
+            purchasethings.Purchase_MainPanel.SetActive(false);
         });
 
-        AddButtonListeners(Purchases_Button, false, true, 1);
-        AddButtonListeners(Purchases_Button1000, false, true, 0);
-        AddButtonListeners(Purchases_Button5000, false, true, 0);
-        AddButtonListeners(Purchases_Button10000, false, true, 0);
-        AddButtonListeners(Purchases_Button50000, false, true, 0);
-        AddButtonListeners(Purchases_Button100000, false, true, 0);
-        AddButtonListeners(Purchases_ButtonReset, false, true, 0);
+        purchasethings.Purchase_Log_Fail2_btn.onClick.AddListener(() => {
+            purchasethings.Purchase_Log_Fail2.SetActive(false);
+            purchasethings.PurchaseCheckReal_Panel.SetActive(false);
+            purchasethings.PurchaseCheckRealFail_Panel.SetActive(false);
+            purchasethings.PurchaseCheckLast_Panel.SetActive(false);
+            purchasethings.Purchase_MainPanel.SetActive(false);
+        });
 
-        AddButtonListeners(Purchase_Panel.transform.Find("Buy_success_btn_yes").GetComponent<Button>(), false, true, 3);
-        AddButtonListeners(Purchase_Panel.transform.Find("Buy_success_btn_no").GetComponent<Button>(), false, true, 2);
-        AddButtonListeners(Purchase_Panel.transform.Find("Button").GetComponent<Button>(), false, true, 2);
-        AddButtonListeners(Purchase_BuySuccess, false, true, 3);
-        AddButtonListeners(Purchase_Log_Success_btn, false, true, 3);
-        AddButtonListeners(Purchase_Log_Fail_btn, false, true, 3);
-        AddButtonListeners(Purchase_Log_Fail2_btn, false, true, 3);
+        AddButtonListeners(purchasethings.Purchases_Button, false, true, 1);
+        AddButtonListeners(purchasethings.Purchases_Button1000, false, true, 0);
+        AddButtonListeners(purchasethings.Purchases_Button5000, false, true, 0);
+        AddButtonListeners(purchasethings.Purchases_Button10000, false, true, 0);
+        AddButtonListeners(purchasethings.Purchases_Button50000, false, true, 0);
+        AddButtonListeners(purchasethings.Purchases_Button100000, false, true, 0);
+        AddButtonListeners(purchasethings.Purchases_ButtonReset, false, true, 0);
 
-        PurchaseCheckLast_Panel.SetActive(false);
-        Purchase_MainPanel.SetActive(false);
-        Purchase_Log_Success.SetActive(false);
-        Purchase_Log_Fail.SetActive(false);
-        Purchase_Log_Fail2.SetActive(false);
+        AddButtonListeners(purchasethings.Purchase_Panel.transform.Find("Buy_success_btn_yes").GetComponent<Button>(), false, true, 3);
+        AddButtonListeners(purchasethings.Purchase_Panel.transform.Find("Buy_success_btn_no").GetComponent<Button>(), false, true, 2);
+        AddButtonListeners(purchasethings.Purchase_Panel.transform.Find("Button").GetComponent<Button>(), false, true, 2);
+        AddButtonListeners(purchasethings.Purchase_BuySuccess, false, true, 3);
+        AddButtonListeners(purchasethings.Purchase_Log_Success_btn, false, true, 3);
+        AddButtonListeners(purchasethings.Purchase_Log_Fail_btn, false, true, 3);
+        AddButtonListeners(purchasethings.Purchase_Log_Fail2_btn, false, true, 3);
     }
+    /*PurchaseList값을 합해서 반환*/
     int CalculateSumPurchase(List<int> PurchaseList)
     {
         int[] purchaseAmounts = { 1000, 5000, 10000, 50000, 100000 };
