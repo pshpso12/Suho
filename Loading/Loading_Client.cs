@@ -277,3 +277,130 @@ public class Loading_Client : NetworkBehaviour
             yield return null;
         }
     }
+
+    		void Update()
+    {
+		    /*씬 로드 완료, 유저정보 불러오기 완료 시를 확인 후 다음 진행*/
+        if (isSceneLoaded && isUserDataUpdated_1 && !coroutineStarted)
+        {
+            coroutineStarted = true;
+            StartCoroutine(HandleLoadingProcess());   
+        }
+    }
+    
+    private IEnumerator HandleLoadingProcess()
+    {
+		    /*유저정보가 있는 경우 로비 씬으로 이동*/
+        if (ClientDataManager.Instance.UserDetails.exists)
+        {
+		        /*FillSlider와 로딩바를 2초 동안 채우는 코드
+		        FadeinCanvas는 검은화면을 alpha값 조정으로 Fadein을 구현한 코드이며
+		        포트폴리오에는 첨부하지 않았습니다.*/
+            StartCoroutine(FillSlider(2));
+            yield return new WaitUntil(() => LoadingSldier.value == 1f);
+            yield return fade_inout.StartCoroutine(fade_inout.FadeinCanvas(10));
+            sceneAsync.allowSceneActivation = true; 
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+        /*유저정보가 없는 경우 닉네임을 정하기 위한 게임오브젝트 활성화, 노래 재생*/
+        else
+        {
+            StartCoroutine(FillSlider(2));
+            yield return new WaitUntil(() => LoadingSldier.value == 1f);
+            yield return fade_inout.StartCoroutine(fade_inout.FadeinCanvas(10));
+            panel_loding.SetActive(false);
+            panel_Nick.SetActive(true);
+            yield return fade_inout.StartCoroutine(fade_inout.FadeoutCanvas(1));
+            /*팝업이 발생한 후 inputfield에 바로 텍스트를 적을 수 있게 하기 위함*/
+            EventSystem.current.SetSelectedGameObject(Nickname_Field.gameObject);
+            
+            BackgroundManager audioManager = GameObject.Find("SoundObject").GetComponent<BackgroundManager>();
+            if(audioManager != null)
+            {
+                if(!audioManager.IsMusicPlaying())
+                {
+                    audioManager.PlayMusic_A();
+                }
+            }
+        }
+    }
+    
+    /*Lobby씬 이동 시 노래 재생 및 Initialize 실행, 귓속말 시스템을 위해 Nickname을 서버에 저장*/
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if(scene.name == "Lobby") {
+            Lobby.audioManager = GameObject.Find("SoundObject").GetComponent<BackgroundManager>();
+            Lobby.Initialize();
+            CmdServerSaveNick(ClientDataManager.Instance.UserDetails.Nickname, SteamInfo.SteamID);
+            fade_inout.StartCoroutine(fade_inout.FadeoutCanvas(10));
+        }
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+    
+    /*기존 접속확인에서 기존접속을 끊고 접속할 경우*/
+    private void OnLoadfail1Clicked()
+    {
+        Load_fail.SetActive(false);
+        clientAuth.QuitExist(SteamInfo.SteamID);
+        StartCoroutine(CheckExistDone());
+    }
+    
+    /*기존 접속이 끊어졌을 경우 서버로 부터 해당 정보를 받아
+     clientAuth.DisM이 true로 변경됩니다.*/
+    private IEnumerator CheckExistDone()
+    {
+        float timeout = 20f;
+        while (!clientAuth.DisM && timeout > 0)
+        {
+            timeout -= Time.deltaTime;
+            yield return null;
+        }
+        clientAuth.SendLoginMsg(SteamInfo.SteamID, "");
+        clientAuth.DisM = false;
+        StartCoroutine(CheckExist());
+    }
+    
+    /*비속어 목록을 불러오기*/
+    private void LoadProfanities()
+    {
+        string[] profanities = Resources.Load<TextAsset>("profanities").text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        profanitiesList.AddRange(profanities);
+    }
+    
+    /*버튼 클릭 시 닉네임이 조건에 부합한지 클라이언트 차원에서 확인 후 서버로 전송*/
+    private void OnNicknameSubmitClicked()
+    {
+        string nickname = Nickname_Field.text;
+        SteamInfo.Nickname = Nickname_Field.text;
+        
+        if (!IsValidNickname(nickname))
+        {
+            Nick_Logfail2.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(Nick_Logfail2_btn.gameObject);
+            Nickname_Field.text = "";
+            if(UisoundManager != null)
+                UisoundManager.PlayWarringSound();
+            return;
+        }
+        NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
+        CmdSubmitNickname(nickname, opponentIdentity);
+    }
+    
+    /*닉네임의 조건*/
+    private bool IsValidNickname(string nickname)
+    {
+        if (string.IsNullOrEmpty(nickname) || nickname.Length < 2 || nickname.Length > 12)
+        {
+            return false;
+        }
+        foreach (var profanity in profanitiesList)
+        {
+            if (nickname.Contains(profanity, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+        Regex regex = new Regex(@"^[0-9a-zA-Z가-힣]{2,12}$");
+        return regex.IsMatch(nickname);
+    }
+}
