@@ -4,7 +4,7 @@ using UnityEngine;
 using Mirror;
 using Steamworks;
 using UnityEngine.UI;
-using TMPro; // For TMP_InputField Remove later
+using TMPro;
 using UnityEngine.SceneManagement;
 using System.Text.RegularExpressions;
 using System;
