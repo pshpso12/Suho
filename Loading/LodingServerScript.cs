@@ -8,7 +8,7 @@ using Mirror;
 public class LodingServerScript : MonoBehaviour
 {
     private string serverURL = "http://localhost:XXXX";
-    public Loading_Server loadingserver;
+    private Loading_Server loadingserver;
     [System.Serializable]
     public class SteamIDData
     {
@@ -94,7 +94,6 @@ public class LodingServerScript : MonoBehaviour
         public string steamID;
         public string nickname;
     }
-    public Fade_InOut fade_inout;
 
     /*DB에서 해당 steamID로 생성된 User가 있는지 확인*/
     public IEnumerator CheckSteamID(string steamID, NetworkIdentity ClientIdentity)
