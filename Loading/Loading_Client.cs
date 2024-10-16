@@ -13,7 +13,7 @@ using Insight;
 
 public class Loading_Client : NetworkBehaviour
 {
-    public Loading_Things loadingthings;
+    private Loading_Things loadingthings;
     private List<string> profanitiesList = new List<string>();
     
     public class TextureDataHolder
@@ -37,9 +37,9 @@ public class Loading_Client : NetworkBehaviour
     public ClientAuthentication clientAuth;
 
     public UISoundManager UisoundManager;
-    public Texture2D cursorTexture;
+    [SerializeField] private Texture2D cursorTexture;
 
-    public string GameVersionString;
+    [SerializeField] private string GameVersionString;
     private int GameVersionCheck = 0;
     
     void Start()
