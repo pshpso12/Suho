@@ -45,7 +45,8 @@ public class Loading_Server : NetworkBehaviour
     {
         Application.Quit();
     }
-    /*클라이언트는 */
+    /*클라이언트는 정보를 respone 정보를 저장하고, isUserDataUpdated_1 변수를 true로 설정합니다.
+    클라이언트는 Update()에서 다음을 확인하고 HandleLoadingProcess()를 진행합니다.*/
     [TargetRpc]
     public void DataSendToClient(NetworkConnectionToClient target, SteamLobby_Server.ServerResponse response)
     {
