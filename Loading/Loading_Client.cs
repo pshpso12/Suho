@@ -31,10 +31,10 @@ public class Loading_Client : NetworkBehaviour
     private bool isUserDataUpdated_1 = false;
 
     private bool coroutineStarted = false;
-    public Fade_InOut fade_inout;
+    private Fade_InOut fade_inout;
 
     private AsyncOperation sceneAsync;
-    public ClientAuthentication clientAuth;
+    private ClientAuthentication clientAuth;
 
     public UISoundManager UisoundManager;
     [SerializeField] private Texture2D cursorTexture;
@@ -44,15 +44,15 @@ public class Loading_Client : NetworkBehaviour
     
     void Start()
     {
-    	/*모든 변수 할당을 Start()문에서 Find, GetComponent()로 할당하였다가 런타임 성능을 고려하여
-	에디터에서 변수들을 직접 할당한 Loading_Things를 참조하는 방식으로 변경*/
-    	loadingthings = GameObject.Find("Loading_Object").GetComponent<Loading_Things>();
-     
         if(isClient)
             DontDestroyOnLoad(this);
         if (isClient && isLocalPlayer && SceneManager.GetActiveScene().name == "M_Loading")
         {
-            if (cursorTexture != null)
+	    /*모든 변수 할당을 Start()문에서 Find, GetComponent()로 할당하였다가 런타임 성능을 고려하여
+	    에디터에서 변수들을 직접 할당한 Loading_Things를 참조하는 방식으로 변경*/
+    	    loadingthings = GameObject.Find("Loading_Object").GetComponent<Loading_Things>();
+            
+	    if (cursorTexture != null)
             {
 		/*Default Cursor 사용 시 인게임에서 cusror 애니메이션 사용 시 
 		Default Cursor가 한 프레임 적용되서 새로운 씬 마다 SetCursor 이용*/
