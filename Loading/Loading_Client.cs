@@ -13,8 +13,73 @@ using Insight;
 
 public class Loading_Client : NetworkBehaviour
 {
+    private Slider LoadingSldier;
+    private TMP_Text LoadingSlider_Text;
+    private Button checkbtn;
+    private TMP_InputField userInputField;
+    private TMP_InputField Nickname_Field;
+    private Button Nickbtn;
+    private GameObject Load_fail;
+    private Button Load_fail1_btn;
+    private Button Load_fail2_btn;
+    public Lobby_Client lobbyclient;
+
+    private GameObject Steam_fail;
+    private Button Steam_fail_btn;
+
+    private GameObject Version_fail;
+    private Button Version_fail_btn;
+
+    private GameObject panel_loding;
+    private GameObject panel_Nick;
+    private GameObject panel_First;
+    private GameObject panel_Logo;
+    private GameObject Nick_Logfail;
+    private GameObject Nick_Logfail2;
+    private GameObject Nick_Logsuccess;
+    private TMP_Text nickSuccessText;
+
+    private List<string> profanitiesList = new List<string>();
+    
+    public class TextureDataHolder
+    {
+        public static Texture2D UserTexture { get; set; }
+    }
+    
+    public static class SteamInfo
+    {
+        public static string SteamID { get; set; }
+        public static string Nickname { get; set; }
+    }
+    
+    private bool isSceneLoaded = false;
+    private bool isUserDataUpdated_1 = false;
+
+    private bool coroutineStarted = false;
+    private Button Nick_Logfail1_btn;
+    private Button Nick_Logfail2_btn;
+    private Button Nick_Logsuccess1_btn;
+    private Button Nick_Logsuccess2_btn;
+
+    private bool isButtonClicked = false;
+    private string Forsendnickname;
+
+    public Fade_InOut fade_inout;
+
+    private AsyncOperation sceneAsync;
+    public ClientAuthentication clientAuth;
+
+    public UISoundManager UisoundManager;
+    public Texture2D cursorTexture;
+
+    public string GameVersionString;
+    private int GameVersionCheck = 0;
+    
     void Start()
     {
+    	/*변수 할당 코드는 프트폴리오에서는 생략하였습니다.
+     	Find, GetComponent()로 할당하였습니다.*/
+     
         if(isClient)
             DontDestroyOnLoad(this);
         if (isClient && isLocalPlayer && SceneManager.GetActiveScene().name == "M_Loading")
@@ -329,8 +394,8 @@ public class Loading_Client : NetworkBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if(scene.name == "Lobby") {
-            Lobby.audioManager = GameObject.Find("SoundObject").GetComponent<BackgroundManager>();
-            Lobby.Initialize();
+            lobbyclient.audioManager = GameObject.Find("SoundObject").GetComponent<BackgroundManager>();
+            lobbyclient.Initialize();
             CmdServerSaveNick(ClientDataManager.Instance.UserDetails.Nickname, SteamInfo.SteamID);
             fade_inout.StartCoroutine(fade_inout.FadeoutCanvas(10));
         }
