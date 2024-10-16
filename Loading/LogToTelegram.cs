@@ -10,6 +10,7 @@ public class LogToTelegram : MonoBehaviour
     private const string chatId = "xx";
 
     private bool isHandleStartInitialized = false;
+    /*Master서버와 Game서버 구분*/
     public string WhatServer;
 
     public void Handle_Start()
