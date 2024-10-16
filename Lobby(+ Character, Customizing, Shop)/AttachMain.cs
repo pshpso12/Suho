@@ -222,7 +222,7 @@ public class AttachMain : MonoBehaviour
         UpdateRoomList(searchQuery);
         RoomSearchInput.text = "";
     }
-    /*새로고침 시 방 목록을 다시 받아가져옴 onReLoadRoom 이벤트는 Lobby_Client에서 적용*/
+    /*새로고침 시 방 목록을 다시 가져옴 onReLoadRoom 이벤트는 Lobby_Client에서 적용*/
     public void OnButtonReLoadButton()
     {
         onReLoadRoom?.Invoke();
