@@ -22,7 +22,7 @@ public class Loading_Client : NetworkBehaviour
             if (cursorTexture != null)
             {
 		/*Default Cursor 사용 시 인게임에서 cusror 애니메이션 사용 시 
-		Default Cursor가 한 프레임 적용되서 SetCursor 이용*/
+		Default Cursor가 한 프레임 적용되서 새로운 씬 마다 SetCursor 이용*/
                 Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
             }
             
