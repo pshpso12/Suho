@@ -7,7 +7,7 @@ using Mirror;
 
 public class LodingServerScript : MonoBehaviour
 {
-    private string serverURL = "http://localhost:XXXX"; // Replace with your server's URL if different.
+    private string serverURL = "http://localhost:XXXX";
     public Loading_Server loadingserver;
     [System.Serializable]
     public class SteamIDData
@@ -118,9 +118,9 @@ public class LodingServerScript : MonoBehaviour
         {
             ServerResponse response = JsonUtility.FromJson<ServerResponse>(www.downloadHandler.text);
 
-            /*존재한다면 Ban 유저인지를 확인하고 벤유저일 경우 클라이언트 종료 명령을 보냅니다.
-             존재하고 Ban 유저가 아니라면 추가로 필요한 데이터를 가져옵니다.
-             존재하지 않는다면 exits가 false인 respone을 전송해 유저 생성을 할 수 있도록 합니다.*/
+            /*존재한다면 Ban 유저인지를 확인하고 벤유저일 경우 클라이언트 종료 명령을 보냄
+             존재하고 Ban 유저가 아니라면 추가로 필요한 데이터를 가져옴
+             존재하지 않는다면 exits가 false인 respone을 전송해 유저 생성을 할 수 있도록 함*/
             if(response.exists)
             {
                 if(response.isban)
@@ -178,7 +178,7 @@ public class LodingServerScript : MonoBehaviour
         www.uploadHandler.Dispose();
     }
 
-    /**/
+    /*DB에서 외래키인 userID를 이용해 각 테이블의 정보를 가져옴*/
     IEnumerator GetDataFromTable(string endpoint, string userID, NetworkIdentity ClientIdentity)
     {
         UserIDData dataToSend = new UserIDData { userID = userID };
@@ -198,13 +198,12 @@ public class LodingServerScript : MonoBehaviour
         }
         else
         {
-            //Debug.Log(www.downloadHandler.text);
             if(endpoint == "/get-characters")
             {
                 CharactersResponse charactersResponse = JsonUtility.FromJson<CharactersResponse>(www.downloadHandler.text);
                 if(ClientIdentity.connectionToClient != null)
                 {
-                    steamClientScript.CharacterDataSendToClient(ClientIdentity.connectionToClient, charactersResponse);
+                    loadingserver.CharacterDataSendToClient(ClientIdentity.connectionToClient, charactersResponse);
                 }
             }
             else if(endpoint == "/get-outfit")
@@ -212,7 +211,7 @@ public class LodingServerScript : MonoBehaviour
                 OutfitsResponse outfitsResponse = JsonUtility.FromJson<OutfitsResponse>(www.downloadHandler.text);
                 if(ClientIdentity.connectionToClient != null)
                 {
-                    steamClientScript.OutfitDataSendToClient(ClientIdentity.connectionToClient, outfitsResponse);
+                    loadingserver.OutfitDataSendToClient(ClientIdentity.connectionToClient, outfitsResponse);
                 }
             }
             else if(endpoint == "/get-accessory")
@@ -220,19 +219,19 @@ public class LodingServerScript : MonoBehaviour
                 AccessoriesResponse accessoriesResponse = JsonUtility.FromJson<AccessoriesResponse>(www.downloadHandler.text);
                 if(ClientIdentity.connectionToClient != null)
                 {
-                    steamClientScript.AccDataSendToClient(ClientIdentity.connectionToClient, accessoriesResponse);
+                    loadingserver.AccDataSendToClient(ClientIdentity.connectionToClient, accessoriesResponse);
                 }
             }
         }
         www.uploadHandler.Dispose();
     }
 
+    /*DB에서 동일한 닉네임이 있는지 여부를 확인*/
     public IEnumerator CheckNickname(string check_nickname, NetworkIdentity ClientIdentity)
     {
         NicknameData dataToSend = new NicknameData { nickname = check_nickname };
         string json = JsonUtility.ToJson(dataToSend);
 
-        // Adjust the endpoint for nickname checking
         UnityWebRequest www = new UnityWebRequest(serverURL + "/check-nickname", "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
         www.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
@@ -248,30 +247,26 @@ public class LodingServerScript : MonoBehaviour
         else
         {
             ServerResponse response = JsonUtility.FromJson<ServerResponse>(www.downloadHandler.text);
-            //Debug.Log(www.downloadHandler.text); // Handle the response (JSON) appropriately.
 
             if(response.exists)
             {
-                // Handle the case where the nickname exists in the database
-                //Debug.Log("Nickname already exists");
                 if(ClientIdentity.connectionToClient != null)
                 {
-                    steamClientScript.TargetNicknameSubmissionResult_fail(ClientIdentity.connectionToClient, response, check_nickname);
+                    loadingserver.TargetNicknameSubmissionResult_fail(ClientIdentity.connectionToClient, response, check_nickname);
                 }
             }
             else
             {
-                // Handle the case where the nickname doesn't exist
-                //Debug.Log("Nickname is available");
                 if(ClientIdentity.connectionToClient != null)
                 {
-                    steamClientScript.TargetNicknameSubmissionResult(ClientIdentity.connectionToClient, response, check_nickname);
+                    loadingserver.TargetNicknameSubmissionResult(ClientIdentity.connectionToClient, response, check_nickname);
                 }
             }
         }
         www.uploadHandler.Dispose();
     }
 
+    /*steamID와 닉네임을 토대로 유저 create를 진행*/
     public IEnumerator CreateNewUser(string nickname, string steamID, NetworkIdentity ClientIdentity)
     {
         UserData dataToSend = new UserData { steamID = steamID, nickname = nickname };
@@ -291,10 +286,9 @@ public class LodingServerScript : MonoBehaviour
         }
         else
         {
-            //Debug.Log(www.downloadHandler.text); 
+            /*유저, 캐릭터, 의상, 악세사리 데이터를 불러오기 위해 CheckSteamID 다시 진행*/
             yield return StartCoroutine(CheckSteamID(steamID, ClientIdentity));
-            //yield return fade_inout.StartCoroutine(fade_inout.FadeinCanvas(10));
-            steamClientScript.CreateDone(ClientIdentity.connectionToClient);
+            loadingserver.CreateDone(ClientIdentity.connectionToClient);
         }
 
         www.uploadHandler.Dispose();
