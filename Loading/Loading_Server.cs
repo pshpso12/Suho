@@ -75,7 +75,7 @@ public class Loading_Server : NetworkBehaviour
     [Command]
     private void CmdSubmitNickname(string nickname, NetworkIdentity ClientIdentity)
     {
-        steamServerScript.StartCoroutine(steamServerScript.CheckNickname(nickname, ClientIdentity));
+        LodingServerScript.StartCoroutine(LodingServerScript.CheckNickname(nickname, ClientIdentity));
     }
     /*중복된 닉네임이 없다면 클라이언트는 사용할 수 있음을 확인하고 승인 혹은 거절 가능*/
     [TargetRpc]
