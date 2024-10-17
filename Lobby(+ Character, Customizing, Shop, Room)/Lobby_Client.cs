@@ -92,9 +92,9 @@ public class MainLobby : NetworkBehaviour
             PurChaseLoad();
 
             /*채팅 기능이 없는 커스터마이징, 상점에서 다시 로비로 올 때 그 사이에 온 메시지 입력 (최신 순으로 최대 30개)*/
-            if (lobbythings.chatText != null && messageBuffer.Count > 0)
+            if (chatText != null && messageBuffer.Count > 0)
             {
-                lobbythings.chatText.text = string.Concat(messageBuffer);
+                chatText.text = string.Concat(messageBuffer);
                 messageBuffer.Clear();
             }
             /*방 목록 찾기와 새로고침 적용*/
@@ -176,13 +176,13 @@ public class MainLobby : NetworkBehaviour
     {
         if(isClient && isLocalPlayer)
         {
-            objectActivator = Ui_List.GetComponent<ObjectActivatorM>();
+            charbase = charthings.Ui_List.GetComponent<CharBase>();
             charthings.Change_Btn.onClick.AddListener(OnButtonSendIndex);
 
             PurChaseLoad();
 
             Button SQuitBtn = GameObject.Find("Ui_Overone/Over_Btn/Quit_btn").GetComponent<Button>();
-            foreach (Button btn in objectActivator.cha_buttons)
+            foreach (Button btn in charbase.cha_buttons)
             {
                 AddButtonListeners(btn, true, true, 0);
             }
@@ -553,9 +553,9 @@ public class MainLobby : NetworkBehaviour
     /*대표 캐릭터 변경*/
     public void OnButtonSendIndex()
     {
-        if(objectActivator != null)
+        if(charbase != null)
         {
-            int index = objectActivator.Index_Send;
+            int index = charbase.Index_Send;
             if (int.TryParse(ClientDataManager.Instance.UserDetails.MainCharacterID, out int MainCharacterID))
             {
 	    	/*변경 캐릭터가 현재 캐릭터와 동일할 경우 서버로 전송 안함
