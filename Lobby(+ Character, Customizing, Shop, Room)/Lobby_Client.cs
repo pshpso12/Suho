@@ -12,7 +12,7 @@ using UnityEngine.EventSystems;
 using System.Linq;
 using Newtonsoft.Json;
 
-public class MainLobby : NetworkBehaviour
+public class Lobby_Client : NetworkBehaviour
 {
    
     private LobbyBase lobbybase;
