@@ -6,9 +6,7 @@ using TMPro;
 
 public class Loading_Things : MonoBehaviour
 {
-    
     public GameObject chatUI;
-    public TMP_Text chatText;
     public TMP_InputField chatInputField;
     public TMP_Text InputFieldText;
 
