@@ -17,9 +17,9 @@ public class Room
     public bool RoomStart;
 }
 
-public class KihanaRoomManager : MonoBehaviour
+public class RoomManager : MonoBehaviour
 {
-    public static KihanaRoomManager Instance { get; private set; }
+    public static RoomManager Instance { get; private set; }
     
     public List<Room> rooms = new List<Room>();
     public Queue<int> availableRoomNumbers = new Queue<int>();
