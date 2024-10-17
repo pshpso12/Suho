@@ -15,6 +15,7 @@ using Insight;
 /*실제로는 [TargetRpc]가 Loading_Client에서 동작합니다.*/
 public class Loading_Server : NetworkBehaviour
 {
+    [SerializeField] private LodingServerScript lodingserverscript;
     [SerializeField] private string GameVersionString;
 
     /*클라이언트로 부터 버전 정보를 받고 동일한지 확인*/
@@ -40,7 +41,7 @@ public class Loading_Server : NetworkBehaviour
     [Command]
     private void CmdSendSteamData(string steamID, NetworkIdentity ClientIdentity)
     {
-        LodingServerScript.StartCoroutine(LodingServerScript.CheckSteamID(steamID, ClientIdentity));
+        lodingserverscript.StartCoroutine(lodingserverscript.CheckSteamID(steamID, ClientIdentity));
     }
     /*LoadingServerScript를 통해 벤 유저인 경우 클라이언트는 프로그램을 종료*/
     [TargetRpc]
@@ -78,7 +79,7 @@ public class Loading_Server : NetworkBehaviour
     [Command]
     private void CmdSubmitNickname(string nickname, NetworkIdentity ClientIdentity)
     {
-        LodingServerScript.StartCoroutine(LodingServerScript.CheckNickname(nickname, ClientIdentity));
+        lodingserverscript.StartCoroutine(lodingserverscript.CheckNickname(nickname, ClientIdentity));
     }
     /*중복된 닉네임이 없다면 클라이언트는 사용할 수 있음을 확인하고 승인 혹은 거절 가능*/
     [TargetRpc]
@@ -102,7 +103,7 @@ public class Loading_Server : NetworkBehaviour
     [Command]
     private void CmdCreateNewUser(string nickname, string steamID, NetworkIdentity ClientIdentity)
     {
-        LodingServerScript.StartCoroutine(LodingServerScript.CreateNewUser(nickname, steamID, ClientIdentity));
+        lodingserverscript.StartCoroutine(lodingserverscript.CreateNewUser(nickname, steamID, ClientIdentity));
     }
     /*유저 생성이 정상적으로 완료되었으면, 비동기로 로드한 씬을 완료하여 Lobby로 이동*/
     [TargetRpc]
