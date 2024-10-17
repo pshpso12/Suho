@@ -246,13 +246,4 @@ public class CharBase : MonoBehaviour
             Debug.LogError("Invalid character index");
         }
     }
-
-    private void SetButtonColor(Button btn, Color color)
-    {
-        TMP_Text buttonText = btn.GetComponentInChildren<TMP_Text>();
-        if (buttonText != null)
-        {
-            buttonText.color = color;
-        }
-    }
 }
