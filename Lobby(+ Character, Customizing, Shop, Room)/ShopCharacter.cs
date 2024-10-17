@@ -123,6 +123,7 @@ public class ShopCharacter : MonoBehaviour
             }
         }
     }
+    /*ShopBase에서 사용(의상 변경)*/
     public void ChnageCharacterOutfit(string OutfitType, string OutfitName)
     {
         if(currentCharacter != null)
@@ -138,7 +139,7 @@ public class ShopCharacter : MonoBehaviour
             }
         }
     }
-
+    /*캐릭터 회전 값 초기화 및 의상 적용*/
     public void ReloadaCharacter(int characterID)
     {
         if(currentCharacter != null)
@@ -146,7 +147,7 @@ public class ShopCharacter : MonoBehaviour
             StartCoroutine(RotateCharacterToSpawnPoint(currentCharacter, characterSpawnPoint.rotation, 0.3f));
             foreach (var characterData in ClientDataManager.Instance.CharacterData.characters)
             {
-                if (characterData.CharacterType == characterID) // Match found
+                if (characterData.CharacterType == characterID)
                 {
                     if (characterData.TopOutfitID != "")
                         ApplyOutfit(characterData.TopOutfitID, currentCharacter, "Top", characterID);
@@ -164,6 +165,7 @@ public class ShopCharacter : MonoBehaviour
             }
         }
     }
+    /*회전 값이 바로 변경 시 시각적으로 좋지 않아, 천천히 이동하게 변경*/
     private IEnumerator RotateCharacterToSpawnPoint(GameObject character, Quaternion targetRotation, float duration)
     {
         float time = 0;
@@ -178,7 +180,7 @@ public class ShopCharacter : MonoBehaviour
 
         character.transform.rotation = targetRotation; // Ensure the rotation is exactly the target rotation at the end
     }
-
+    /*캐릭터 회전을 위해 이용*/
     void Update()
     {
         if (isDragging && currentCharacter != null)
@@ -187,11 +189,12 @@ public class ShopCharacter : MonoBehaviour
             currentCharacter.transform.Rotate(Vector3.up, -rotationX);
         }
     }
+    /*Pointer Down 이벤트로 적용*/
     public void StartRotation()
     {
         isDragging = true;
     }
-
+    /*Pointer Up 이벤트로 적용*/
     public void StopRotation()
     {
         isDragging = false;
