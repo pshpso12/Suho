@@ -8,7 +8,7 @@ using Mirror;
 public class LodingServerScript : MonoBehaviour
 {
     private string serverURL = "http://localhost:XXXX";
-    private Loading_Server loadingserver;
+    [SerializeField] private Loading_Server loadingserver;
     [System.Serializable]
     public class SteamIDData
     {
