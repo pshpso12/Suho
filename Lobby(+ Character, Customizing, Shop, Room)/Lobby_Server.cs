@@ -503,7 +503,8 @@ public class Lobby_Server : NetworkBehaviour
     {
         lobbyserverscript.StartCoroutine(lobbyserverscript.UpdateChaCloth(ClientIdentity, chaNum, type, OutfitID, UId));
     }
-    /*의상 변경이 완료되면 클라이언트에 저장 - 현재 의상 정보를 받지 않고 의상을 변경하는 오류가 있습니다.*/
+    /*의상 변경이 완료되면 클라이언트에 저장 
+    변경 완료된 의상 정보를 ClientDataManager에 업데이트 후 해당 작업이 완료됩니다. (lobbyserverscript에서 yield return으로 전송을 기다린 후 해당 전송을 진행)*/
     [TargetRpc]
     public void ChaClothsDataSendToClient(NetworkConnectionToClient target, bool sucfail, int chaNum, string type, int OutfitID)
     {
@@ -514,10 +515,72 @@ public class Lobby_Server : NetworkBehaviour
         }
         else
         {
-            Cus_Log_panel_fail.SetActive(true);
-            EventSystem.current.SetSelectedGameObject(Cus_Log_panel_fail_btn.gameObject);
+            custhings.Cus_Log_panel_fail.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(custhings.Cus_Log_panel_fail_btn.gameObject);
             if(UisoundManager != null)
                 UisoundManager.PlayWarringSound();
+        }
+    }
+    /*의상 구매 요청이 온 경우 해당 의상이 존재하는지 확인 후 DB에서 재화가 충분한지 확인, 구매 진행*/
+    [Command]
+    private void BuyButton_Check(NetworkIdentity ClientIdentity, int ChaNum, string Type, string Description, string ItemName, string Price, string Price_Type, bool isWorn, string UId)
+    {
+        var matchingOutfits = outfitDataList.outfits.Where(outfit => 
+            outfit.outfitName == ItemName && 
+            outfit.outfit_Type == Type && 
+            outfit.CharaterNum == ChaNum && 
+            outfit.image.name == Description).ToList();
+
+        if (matchingOutfits.Count == 1)
+        {
+            var outfit = matchingOutfits[0];
+
+            lobbyserverscript.StartCoroutine(lobbyserverscript.Buy_Items(ClientIdentity, ChaNum, Type, Description, Price_Type, Price, isWorn, UId));
+        }
+    }
+    /*의상 구매 결과
+    구매 의상 정보를 ClientDataManager에 업데이트 후 해당 작업이 완료됩니다. (lobbyserverscript에서 yield return으로 전송을 기다린 후 해당 전송을 진행)*/*/
+    [TargetRpc]
+    public void ItemDataSendToClient(NetworkConnectionToClient target, bool ItemExist, bool EnoughPoint, bool WornDone, int CP, int BP)
+    {
+        NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
+        /*이미 아이템을 가진 경우*/
+        if(ItemExist)
+        {
+            shopbase.ActivateObject(shopbase.currentIndexList);
+            ClientDataManager.Instance.CostUpdate(CP, BP);
+            shopbase.ReLoadPoint();
+            shopthings.Shop_Log_Fail.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(shopthings.Shop_Log_Fail_btn.gameObject);
+            if(UisoundManager != null)
+                UisoundManager.PlayWarringSound();
+        }
+        /*재화가 부족한 경우*/
+        else if(!ItemExist && !EnoughPoint)
+        {
+            shopbase.ActivateObject(shopbase.currentIndexList);
+            ClientDataManager.Instance.CostUpdate(CP, BP);
+            shopbase.ReLoadPoint();
+            shopthings.Shop_Log_Fail2.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(shopthings.Shop_Log_Fail_btn2.gameObject);
+            if(UisoundManager != null)
+                UisoundManager.PlayWarringSound();
+        }
+        /*구매 성공*/
+        else if(!ItemExist && EnoughPoint)
+        {
+            shopbase.ActivateObject(shopbase.currentIndexList);
+            ClientDataManager.Instance.CostUpdate(CP, BP);
+            shopbase.ReLoadPoint();
+
+            if(WornDone)
+            {
+                shopbase.ReLoadCha();
+            }
+            shopthings.Shop_Log_Success.SetActive(true);
+            EventSystem.current.SetSelectedGameObject(shopthings.Shop_Log_Success_btn.gameObject);
+            if(UisoundManager != null)
+                UisoundManager.PlayBuySound();
         }
     }
 }
