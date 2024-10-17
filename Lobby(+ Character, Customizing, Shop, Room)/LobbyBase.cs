@@ -70,14 +70,14 @@ public class LobbyBase : MonoBehaviour
         /*대표 캐릭터에 맞게 캐릭터 배치*/
         if (characterID > 0 && characterID <= characterPrefabs.Length)
         {
-            GameObject prefab = characterPrefabs[characterID - 1]; // Arrays are zero-indexed
+            GameObject prefab = characterPrefabs[characterID - 1];
             currentCharacter = Instantiate(prefab);
         }
         
         /*대표 캐릭터의 의상 적용*/
         foreach (var characterData in ClientDataManager.Instance.CharacterData.characters)
         {
-            if (characterData.CharacterType == characterID) // Match found
+            if (characterData.CharacterType == characterID)
             {
                 if (characterData.TopOutfitID != "")
                     ApplyOutfit(characterData.TopOutfitID, currentCharacter, "Top", characterID);
@@ -218,7 +218,7 @@ public class LobbyBase : MonoBehaviour
     public void OnSearchInputWithButton()
     {
         string searchQuery = RoomSearchInput.text.Trim();
-        currentPage = 0; // Reset to the first page
+        currentPage = 0;
         UpdateRoomList(searchQuery);
         RoomSearchInput.text = "";
     }
