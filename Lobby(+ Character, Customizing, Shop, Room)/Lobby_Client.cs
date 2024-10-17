@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 
 public class MainLobby : NetworkBehaviour
 {
-    private AttachMain ForRoomCon_AtMain;
+    private LobbyBase lobbybase;
     private Lobby_Things lobbythings;
     private Char_Things charthings;
     private Cus_Things custhings;
@@ -90,11 +90,11 @@ public class MainLobby : NetworkBehaviour
             GameObject ForRoomCon = GameObject.Find("Scenmanager");
             if(ForRoomCon != null)
             {
-                ForRoomCon_AtMain = ForRoomCon.GetComponent<AttachMain>();
-                if(ForRoomCon_AtMain != null)
+                lobbybase = ForRoomCon.GetComponent<LobbyBase>();
+                if(lobbybase != null)
                 {
-                    ForRoomCon_AtMain.onReLoadRoom.AddListener(ReLoadRooms);
-                    ForRoomCon_AtMain.onSendRoom.AddListener(SendRoom);
+                    lobbybase.onReLoadRoom.AddListener(ReLoadRooms);
+                    lobbybase.onSendRoom.AddListener(SendRoom);
                 }
             }
             /*초기 로비 이동 시 방 목록 새로고침*/
@@ -137,10 +137,10 @@ public class MainLobby : NetworkBehaviour
             AddButtonListeners(Schange_chbtn1, true, false, 0);
             AddButtonListeners(Schange_chbtn2, true, false, 0);
             AddButtonListeners(Schange_chbtn3, true, false, 0);
-            AddButtonListeners(ForRoomCon_AtMain.RoomSearchButton, true, true, 0);
-            AddButtonListeners(ForRoomCon_AtMain.RoomReloadButton, true, true, 0);
-            AddButtonListeners(ForRoomCon_AtMain.RoomleftButton, true, true, 0);
-            AddButtonListeners(ForRoomCon_AtMain.RoomrightButton, true, true, 0);
+            AddButtonListeners(lobbybase.RoomSearchButton, true, true, 0);
+            AddButtonListeners(lobbybase.RoomReloadButton, true, true, 0);
+            AddButtonListeners(lobbybase.RoomleftButton, true, true, 0);
+            AddButtonListeners(lobbybase.RoomrightButton, true, true, 0);
             AddButtonListeners(UiCreBtn, true, true, 1);
             AddButtonListeners(SQuitBtn, true, true, 1);
             AddButtonListeners(SSetBtn, true, true, 1);
