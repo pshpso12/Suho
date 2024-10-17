@@ -160,7 +160,7 @@ public class Lobby_Server : NetworkBehaviour
             TargetChangeScene(ClientIdentity.connectionToClient, "Ingame");
             /*방이 생성되면 모든 클라이언트들에게 생성된 방이 포함된 모든 방 정보를 보내려고 했으나 이용하지 않음*/
             string roomDataJson = JsonConvert.SerializeObject(RoomManager.Instance.GetRooms());
-            TargetRoomCreationComplete(ClientIdentity.connectionToClient, roomData    Json);
+            TargetRoomCreationComplete(ClientIdentity.connectionToClient, roomDataJson);
         });
     }
     /*클라이언트의 씬 전환*/
@@ -582,5 +582,23 @@ public class Lobby_Server : NetworkBehaviour
             if(UisoundManager != null)
                 UisoundManager.PlayBuySound();
         }
+    }
+    /*캐릭터 정보 업데이트*/
+    [TargetRpc]
+    public void CharacterDataSendToClient(NetworkConnectionToClient target, LodingServerScript.CharactersResponse response)
+    {
+        ClientDataManager.Instance.UpdateCharacterData(response);
+    }
+    /*의상 업데이트*/
+    [TargetRpc]
+    public void OutfitDataSendToClient(NetworkConnectionToClient target, LodingServerScript.OutfitsResponse response)
+    {
+        ClientDataManager.Instance.UpdateOutfitData(response);
+    }
+    /*악세사리 업데이트*/
+    [TargetRpc]
+    public void AccDataSendToClient(NetworkConnectionToClient target, LodingServerScript.AccessoriesResponse response)
+    {
+        ClientDataManager.Instance.UpdateAccessoriesData(response);
     }
 }
