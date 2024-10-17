@@ -250,7 +250,6 @@ public class Lobby_Client : NetworkBehaviour
                 }
                 if(!audioManager.IsMusicPlaying())
                 {
-                    //StartCoroutine(audioManager.PlayMusic());
                     audioManager.PlayMusic_A();
                 }
             }
