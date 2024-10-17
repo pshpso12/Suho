@@ -16,7 +16,6 @@ public class Loading_Things : MonoBehaviour
     public TMP_Dropdown RoompnumText;
     public Button RoomCreateButton;
     public GameObject Room_Cre_Panl;
-    [SerializeField] public GameObject myNetworkRoomPrefab;
     public GameObject Room_Enter_Panl;
     public GameObject Room_Enter_Error_Panl;
     public GameObject Room_Enter_Withpass_Panl;
