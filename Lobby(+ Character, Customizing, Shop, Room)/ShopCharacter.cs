@@ -34,6 +34,7 @@ public class ShopCharacter : MonoBehaviour
             int index = i;
             ChaButtons[i].onClick.AddListener(() => OnCharacterButtonClicked(index + 1));
         }
+        /*상점에서 의상을 입혀봤다가 다시 기존 옷으로 입히기 위함*/
         ReloadBtn.onClick.AddListener(() => ReloadaCharacter(currentChaNum));
 
         cam = GameObject.Find("Main Camera").GetComponent<Camera>();
