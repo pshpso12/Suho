@@ -257,7 +257,8 @@ public class CusBase : MonoBehaviour
         /*캐릭터의 의상을 변경*/
         cuscharacter.ChnageCharacterOutfit(clickedOutfit.Type, clickedOutfit.Description);
     }
-
+    
+    /*OutfitInfo 변경 후 의상 이미지에 적용*/
     void UpdateButtonState(OutfitInfo outfit, bool isWorn)
     {
         if (outfitButtons.TryGetValue(outfit.OutfitID, out GameObject buttonGameObject))
