@@ -7,7 +7,7 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using System.Linq;
 
-public class AttachMain : MonoBehaviour
+public class LobbyBase : MonoBehaviour
 {
     public TMP_Text Main_nickname;
     public TMP_Text Main_level;
