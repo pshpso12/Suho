@@ -38,7 +38,7 @@ public class LobbyBase : MonoBehaviour
     
     void Start()
     {
-        /*ui에 이미지, 레벨 등 기입*/
+        /*UI에 이미지, 레벨 등 기입*/
         Main_nickname.text = ClientDataManager.Instance.UserDetails.Nickname;
         Main_level.text = $"LV. {ClientDataManager.Instance.UserDetails.Level}";
         Main_steamimage.texture =  ClientDataManager.Instance.UserTexture;
