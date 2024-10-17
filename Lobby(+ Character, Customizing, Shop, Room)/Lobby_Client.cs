@@ -77,6 +77,7 @@ public class MainLobby : NetworkBehaviour
                 Destroy(CloneDatas_22.gameObject);
 
      	    lobbythings = GameObject.Find("Lobby_Object").GetComponent<Lobby_Things>();
+	    chatText = chatUI.transform.Find("Panel/Scroll View/Viewport/Content/Text (TMP)").GetComponent<TMP_Text>();
             /*비속어 불러오기*/
             LoadProfanities();
 
@@ -329,7 +330,7 @@ public class MainLobby : NetworkBehaviour
         {
             roomthings.RoomchatInputField.onEndEdit.AddListener(RoomChatSend);
             roomthings.RoomchatInputField.onValueChanged.AddListener(delegate { HandleRoomInputFieldChange(); });
-
+            RoomchatText = RoomchatUI.transform.Find("Panel/Scroll View/Viewport/Content/Text (TMP)").GetComponent<TMP_Text>();
             if (cursorTexture != null)
             {
                 Cursor.SetCursor(cursorTexture, Vector2.zero, CursorMode.Auto);
