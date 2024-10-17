@@ -113,7 +113,7 @@ public class CharBase : MonoBehaviour
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 (tooltipPanel.transform.parent as RectTransform),
                 Input.mousePosition, 
-                null, // Assuming the Canvas is Screen Space - Overlay
+                null,
                 out localPoint
             );
 
