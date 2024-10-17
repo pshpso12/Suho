@@ -178,7 +178,7 @@ public class ShopCharacter : MonoBehaviour
             yield return null;
         }
 
-        character.transform.rotation = targetRotation; // Ensure the rotation is exactly the target rotation at the end
+        character.transform.rotation = targetRotation;
     }
     /*캐릭터 회전을 위해 이용*/
     void Update()
