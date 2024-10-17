@@ -37,7 +37,7 @@ public class DedicatedServerConsole : MonoBehaviour
                 Debug.Log($"ChatBan command received. Target ID: {chatBanIDString}");
                 if (chatBanIDString != null)
                 {
-                    InAuthentication.DediSendone(false, chatBanIDString, 1);  // Use the integer chatBanID
+                    InAuthentication.DediSendone(false, chatBanIDString, 1);
                 }
             }
             /*_Park이면 닉네임이 Park인 유저 게임 강제 종료*/
