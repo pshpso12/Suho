@@ -19,6 +19,7 @@ public class Lobby_Client : NetworkBehaviour
     private Lobby_Things lobbythings;
     private Char_Things charthings;
     private Cus_Things custhings;
+    private ShopBase shopbase;
     private Shop_Things shopthings;
     private Room_Things roomthings;
     private Purchases_Things purchasethings;
@@ -263,12 +264,12 @@ public class Lobby_Client : NetworkBehaviour
             GameObject levelListGameObject = GameObject.Find("Charater_List/Scroll View/Viewport");
             if(levelListGameObject != null)
             {
-                scrollController_shop = levelListGameObject.GetComponent<ScrollController_ShopM>();
-                if(scrollController_shop != null)
+                shopbase = levelListGameObject.GetComponent<ShopBase>();
+                if(shopbase != null)
                 {
-                    scrollController_shop.onSendItem.AddListener(HandleSendItem);
+                    shopbase.onSendItem.AddListener(HandleSendItem);
 
-                    foreach(Button cbtn in scrollController_shop.buttons)
+                    foreach(Button cbtn in shopbase.buttons)
                     {
                         AddButtonListeners(cbtn, true, true, 0);
                     }
