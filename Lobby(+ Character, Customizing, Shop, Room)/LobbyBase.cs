@@ -126,7 +126,7 @@ public class LobbyBase : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-        List<Room> filteredRooms = KihanaRoomManager.Instance.rooms;
+        List<Room> filteredRooms = RoomManager.Instance.rooms;
         /*검색 값이 있을 경우 방 이름에 값이 있는 것 들만 선별*/
         if (!string.IsNullOrEmpty(filter))
         {
@@ -187,7 +187,7 @@ public class LobbyBase : MonoBehaviour
     /*방 목록 다음 페이지 이동*/
     public void NextPage()
     {
-        int totalPages = (KihanaRoomManager.Instance.rooms.Count + 14 - 1) / 14;
+        int totalPages = (RoomManager.Instance.rooms.Count + 14 - 1) / 14;
         if (currentPage < totalPages - 1)
         {
             currentPage++;
