@@ -495,6 +495,22 @@ public class Lobby_Client : NetworkBehaviour
 
         return Sumpurchase;
     }
+    /*Steam서버로 부터 클라이언트가 결제가 완료됨을 받으면, 서버로 해당 정보를 보냄, 아니라면 결제 실패 팝업 띄움*/
+    void OnMicroTxnAuthorizationResponse(MicroTxnAuthorizationResponse_t pCallback) 
+    {
+        if (pCallback.m_bAuthorized == 1)
+        {
+            NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
+            SendTransactionToServer(opponentIdentity, pCallback.m_ulOrderID);
+        }
+        else
+        {
+            if(purchasethings.Purchase_Log_Fail != null)
+            {
+                purchasethings.Purchase_Log_Fail.SetActive(true);
+            }
+        }
+    }
 
     void AddButtonListeners(Button button, bool enableMouseOverSound, bool enableClickSound, int playNextSound = 0)
     {
