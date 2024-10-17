@@ -17,7 +17,9 @@ public class Lobby_Client : NetworkBehaviour
    
     private LobbyBase lobbybase;
     private Lobby_Things lobbythings;
+    private CharBase charbase;
     private Char_Things charthings;
+    private CusBase cusbase;
     private Cus_Things custhings;
     private ShopBase shopbase;
     private Shop_Things shopthings;
@@ -231,10 +233,10 @@ public class Lobby_Client : NetworkBehaviour
             PurChaseLoad();
 
             Button SQuitBtn = GameObject.Find("Ui_Overone/Over_Btn/Quit_btn").GetComponent<Button>();
-            CusCharacter ForCusCon = GameObject.Find("Scenmanager").GetComponent<CusCharacter>();
-            if(ForCusCon)
+            CusCharacter cuscharacter = GameObject.Find("Scenmanager").GetComponent<CusCharacter>();
+            if(cuscharacter)
             {
-                foreach (Button btn in ForCusCon.ChaButtons)
+                foreach (Button btn in cuscharacter.ChaButtons)
                 {
                     AddButtonListeners(btn, true, true, 0);
                 }
@@ -287,14 +289,14 @@ public class Lobby_Client : NetworkBehaviour
             Button Shop_BuyNo1 = buy_Panel.transform.Find("Button").GetComponent<Button>();
             Button Shop_BuyNo2 = buy_Panel.transform.Find("Buy_success_btn_no").GetComponent<Button>();
             Button Shop_BuyYes = buy_Panel.transform.Find("Buy_success_btn_yes").GetComponent<Button>();
-            AttachShop ForShopCon = GameObject.Find("Scenmanager").GetComponent<AttachShop>();
+            ShopCharacter shopcharacter = GameObject.Find("Scenmanager").GetComponent<ShopCharacter>();
 
             PurChaseLoad();
             
-            if(ForShopCon)
+            if(shopcharacter)
             {
-                AddButtonListeners(ForShopCon.ReloadBtn, true, true, 0);
-                foreach (Button btn in ForShopCon.ChaButtons)
+                AddButtonListeners(shopcharacter.ReloadBtn, true, true, 0);
+                foreach (Button btn in shopcharacter.ChaButtons)
                 {
                     AddButtonListeners(btn, true, true, 0);
                 }
@@ -540,15 +542,15 @@ public class Lobby_Client : NetworkBehaviour
     /*방 생성 시 정보들을 서버로 전송*/
     public void OnButtonSendRoom()
     {
-        string roomName = RoomnameText.text;
-        string roomPassword = RoompassText.text;
-        int roomPlayerNumber = RoompnumText.value;
-        string selectedPlayerNumberText = RoompnumText.options[roomPlayerNumber].text;
+        string roomName = lobbythings.RoomnameText.text;
+        string roomPassword = lobbythings.RoompassText.text;
+        int roomPlayerNumber = lobbythings.RoompnumText.value;
+        string selectedPlayerNumberText = lobbythings.RoompnumText.options[roomPlayerNumber].text;
 
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
         CmdRoomCre(opponentIdentity, roomName, roomPassword, selectedPlayerNumberText);
-        RoomSetUI.SetActive(false);
-        Room_Cre_Panl.SetActive(true);
+        lobbythings.RoomSetUI.SetActive(false);
+        lobbythings.Room_Cre_Panl.SetActive(true);
     }
     /*대표 캐릭터 변경*/
     public void OnButtonSendIndex()
@@ -582,17 +584,17 @@ public class Lobby_Client : NetworkBehaviour
     /*비밀번호가 없는 방 입장 시 서버로 해당 방 정보를 보내서 입장 가능한지를 확인*/
     private void SendRoom(Room room)
     {
-        Room_Enter_Panl.SetActive(true);
+        lobbythings.Room_Enter_Panl.SetActive(true);
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
         CmdSendRoom(opponentIdentity, room);
     }
     /*비밀번호가 있는 방 입장 시 서버로 해당 방 정보를 보내서 입장 가능한지를 확인*/
     private void OnSubmitRoomPasswordClicked(Room room)
     {
-        string password = Room_Enter_Withpass_InputField.text;
+        string password = lobbythings.Room_Enter_Withpass_InputField.text;
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
         CmdSubmitRoomPass(opponentIdentity, password, room);
-        Room_Enter_Panl.SetActive(true);
+        lobbythings.Room_Enter_Panl.SetActive(true);
     }
     
     /*방에서 강제퇴장 당했을 경우 적용*/
@@ -603,9 +605,9 @@ public class Lobby_Client : NetworkBehaviour
             yield return null;
         }
 
-        if (Room_Exit_Forced != null)
+        if (lobbythings.Room_Exit_Forced != null)
         {
-            Room_Exit_Forced.SetActive(true);
+            lobbythings.Room_Exit_Forced.SetActive(true);
             if(UisoundManager != null)
                 UisoundManager.PlayWarringSound();
         }
@@ -662,16 +664,16 @@ public class Lobby_Client : NetworkBehaviour
         if(!messageenabled)
         {
             HandleNewMessage($"\n<color=#FF3B48>메시지 제한! {restrictionTime}초 후 전송 가능</color=#FF3B48>");
-            chatInputField.text = string.Empty;
-            chatInputField.ActivateInputField();
+            lobbythings.chatInputField.text = string.Empty;
+            lobbythings.chatInputField.ActivateInputField();
             return;
         }
 	/*2.메시지제한 : 운영자가 직접 벤한 경우*/
         if(ClientDataManager.Instance.ChatBan)
         {
             HandleNewMessage($"\n<color=#FF3B48>                             ----- 메시지 제한! -----</color=#FF3B48>");
-            chatInputField.text = string.Empty;
-            chatInputField.ActivateInputField();
+            lobbythings.chatInputField.text = string.Empty;
+            lobbythings.chatInputField.ActivateInputField();
             return;
         }
 
@@ -684,8 +686,8 @@ public class Lobby_Client : NetworkBehaviour
             {
                 HandleNewMessage($"\n<color=#FF3B48>메시지 전송이 너무 빈번합니다. (30초 제한)</color=#FF3B48>");
                 StartCoroutine(RestrictMessaging());
-                chatInputField.text = string.Empty;
-                chatInputField.ActivateInputField();
+                lobbythings.chatInputField.text = string.Empty;
+                lobbythings.chatInputField.ActivateInputField();
                 return;
             }
         }
@@ -734,8 +736,8 @@ public class Lobby_Client : NetworkBehaviour
         currentHistoryIndex = messageHistory.Count;
 
 	/*기존 채팅이 남아있는 것과 채팅을 한번 치고 나면 필드를 벗어나는걸 방지*/
-        chatInputField.text = string.Empty;
-        chatInputField.ActivateInputField();
+        lobbythings.chatInputField.text = string.Empty;
+        lobbythings.chatInputField.ActivateInputField();
     }
     /*방에서의 채팅 전송(방에서의 메시지가 다른 방과 로비에서 적용안되게 하기 위해 분리) - 통합 필요*/
     private void RoomChatSend(string message)
@@ -747,15 +749,15 @@ public class Lobby_Client : NetworkBehaviour
         if(!messageenabled)
         {
             HandleNewMessage($"\n<color=#FF3B48>메시지 제한! {restrictionTime}초 후 전송 가능</color=#FF3B48>");
-            RoomchatInputField.text = string.Empty;
-            RoomchatInputField.ActivateInputField();
+            roomthings.RoomchatInputField.text = string.Empty;
+            roomthings.RoomchatInputField.ActivateInputField();
             return;
         }
         if(ClientDataManager.Instance.ChatBan)
         {
             HandleNewMessage($"\n<color=#FF3B48>                             ----- 메시지 제한! -----</color=#FF3B48>");
-            RoomchatInputField.text = string.Empty;
-            RoomchatInputField.ActivateInputField();
+            roomthings.RoomchatInputField.text = string.Empty;
+            roomthings.RoomchatInputField.ActivateInputField();
             return;
         }
 
@@ -767,8 +769,8 @@ public class Lobby_Client : NetworkBehaviour
             {
                 HandleNewMessage($"\n<color=#FF3B48>메시지 전송이 너무 빈번합니다. (30초 제한)</color=#FF3B48>");
                 StartCoroutine(RestrictMessaging());
-                RoomchatInputField.text = string.Empty;
-                RoomchatInputField.ActivateInputField();
+                roomthings.RoomchatInputField.text = string.Empty;
+                roomthings.RoomchatInputField.ActivateInputField();
                 return;
             }
         }
@@ -813,9 +815,9 @@ public class Lobby_Client : NetworkBehaviour
         messageHistory.Add(message);
         currentHistoryIndex = messageHistory.Count;
 
-        RoomchatInputField.text = string.Empty;
+        roomthings.RoomchatInputField.text = string.Empty;
 
-        RoomchatInputField.ActivateInputField();
+        roomthings.RoomchatInputField.ActivateInputField();
     }
     private void LoadProfanities()
     {
@@ -831,7 +833,7 @@ public class Lobby_Client : NetworkBehaviour
     /*"/r park "입력 시 "/msg park "으로 필드 값 변경*/
     private void HandleInputFieldChange()
     {
-        string text = chatInputField.text;
+        string text = lobbythings.chatInputField.text;
         if (text.StartsWith("/r ", StringComparison.OrdinalIgnoreCase))
         {
             string[] splitText = text.Split(' ', 2);
@@ -839,21 +841,22 @@ public class Lobby_Client : NetworkBehaviour
             {
                 if (!string.IsNullOrEmpty(lastWhisperID))
                 {
-                    chatInputField.text = $"/msg {lastWhisperID} ";
+                    lobbythings.chatInputField.text = $"/msg {lastWhisperID} ";
                 }
                 else
                 {
-                    chatInputField.text = $"/msg ";
+                    lobbythings.chatInputField.text = $"/msg ";
                 }
-                chatInputField.Select();
-                chatInputField.MoveTextEnd(false);
+		/*커서를 "/msg " 다음으로 이동하지 않아 MoveTextEnd로 커서를 제일 뒤로 옮기고 false를 이용해 해당 텍스트 선택되는 것을 막음*/
+                lobbythings.chatInputField.Select();
+                lobbythings.chatInputField.MoveTextEnd(false);
             }
         }
     }
     /*동일한 코드(방에서 사용) - 통합 필요*/
     private void HandleRoomInputFieldChange()
     {
-        string text = RoomchatInputField.text;
+        string text = roomthings.RoomchatInputField.text;
         if (text.StartsWith("/r ", StringComparison.OrdinalIgnoreCase))
         {
             string[] splitText = text.Split(' ', 2);
@@ -861,14 +864,15 @@ public class Lobby_Client : NetworkBehaviour
             {
                 if (!string.IsNullOrEmpty(lastWhisperID))
                 {
-                    RoomchatInputField.text = $"/msg {lastWhisperID} ";
+                    roomthings.RoomchatInputField.text = $"/msg {lastWhisperID} ";
                 }
                 else
                 {
-                    RoomchatInputField.text = $"/msg ";
+                    roomthings.RoomchatInputField.text = $"/msg ";
                 }
-                RoomchatInputField.Select();
-                RoomchatInputField.MoveTextEnd(false);
+		/*커서를 "/msg " 다음으로 이동하지 않아 MoveTextEnd로 커서를 제일 뒤로 옮기고 false를 이용해 해당 텍스트 선택되는 것을 막음*/
+                roomthings.RoomchatInputField.Select();
+                roomthings.RoomchatInputField.MoveTextEnd(false);
             }
         }
     }
@@ -899,12 +903,12 @@ public class Lobby_Client : NetworkBehaviour
             return new PriceData { price_Type = priceInfo[0], price = int.Parse(priceInfo[1]) };
         }).ToList();
 
-        Shop_textCloth.text = ItemName;
+        shopthings.Shop_textCloth.text = ItemName;
         Sprite itemSprite_Item = Resources.Load<Sprite>($"Images/{description}");
-        Shop_outfitImage.sprite = itemSprite_Item;
+        shopthings.Shop_outfitImage.sprite = itemSprite_Item;
 
  	/*기본 옵션을 제거한 후 드롭다운에 가격 정보를 기입*/
-        Shop_dropdown.ClearOptions();
+        shopthings.Shop_dropdown.ClearOptions();
         List<TMP_Dropdown.OptionData> dropdownOptions = new List<TMP_Dropdown.OptionData>();
         foreach (var priceData in prices)
         {
@@ -915,23 +919,23 @@ public class Lobby_Client : NetworkBehaviour
             dropdownOptions.Add(optionData);
         }
 	/*드롭다운 옵션을 적용, 초기 값들 출력*/
-        Shop_dropdown.AddOptions(dropdownOptions);
-        Shop_textCost.text = Shop_dropdown.options[Shop_dropdown.value].text;
-        Shop_CostImage.sprite = Shop_dropdown.options[Shop_dropdown.value].image;
-        Shop_toggle.isOn = true;
+        shopthings.Shop_dropdown.AddOptions(dropdownOptions);
+        shopthings.Shop_textCost.text = shopthings.Shop_dropdown.options[Shop_dropdown.value].text;
+        shopthings.Shop_CostImage.sprite = shopthings.Shop_dropdown.options[Shop_dropdown.value].image;
+        shopthings.Shop_toggle.isOn = true;
 	/*버튼 클릭 시 해당 값으로 서버에 전송할 수 있게 값을 저장*/
         UpdateButtonBuyValues(characterNum, type, 
-        description, ItemName, Shop_textCost.text, Shop_CostImage.sprite.name, Shop_toggle.isOn);
+        description, ItemName, shopthings.Shop_textCost.text, shopthings.Shop_CostImage.sprite.name, shopthings.Shop_toggle.isOn);
         buy_MainPanel.SetActive(true);
     }
     /*드롭다운으로 값을 변경했을 때 팝업에서 출력값 변경 및 값 저장*/
     private void DropdownValueChanged(TMP_Dropdown dropdown)
     {
         string selectedOptionText = dropdown.options[dropdown.value].text;
-        Shop_textCost.text = selectedOptionText;
-        Shop_CostImage.sprite = dropdown.options[dropdown.value].image;
+        shopthings.Shop_textCost.text = selectedOptionText;
+        shopthings.Shop_CostImage.sprite = dropdown.options[dropdown.value].image;
         UpdateButtonBuyValues(Shop_characterNum, Shop_type, 
-        Shop_description, Shop_itemName, Shop_textCost.text, Shop_CostImage.sprite.name, Shop_isWorn);
+        Shop_description, Shop_itemName, shopthings.Shop_textCost.text, shopthings.Shop_CostImage.sprite.name, Shop_isWorn);
     }
     /*구매 후 바로 입을지를 위한 Toggle값 변경*/
     private void ToggleValueChanged(bool isOn)
@@ -958,8 +962,8 @@ public class Lobby_Client : NetworkBehaviour
     void OnButtonItemBuy(int ChaNum, string Type, string Description, string ItemName, string Price, string Price_Type, bool isWorn)
     {
         NetworkIdentity opponentIdentity = GetComponent<NetworkIdentity>();
-        buyCheckLast_Panel.SetActive(false);
-        buy_MainPanel.SetActive(false);
+        shopthings.buyCheckLast_Panel.SetActive(false);
+        shopthings.buy_MainPanel.SetActive(false);
         BuyButton_Check(opponentIdentity, ChaNum, Type, Description, ItemName, Price, Price_Type, isWorn, ClientDataManager.Instance.UserDetails.userID);
     }
     
@@ -1004,7 +1008,7 @@ public class Lobby_Client : NetworkBehaviour
     {
         if (!isClient) return;
         /*채팅 인풋필드가 선택되어 있고 위 방향키를 누를 때 전에 전송한 메시지 인풋필드에 입력*/
-        if(RoomchatInputField != null && RoomchatInputField.isFocused && Input.GetKeyDown(KeyCode.UpArrow))
+        if(roomthings.RoomchatInputField != null && roomthings.RoomchatInputField.isFocused && Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (messageHistory.Count > 0)
             {
@@ -1013,12 +1017,12 @@ public class Lobby_Client : NetworkBehaviour
                 {
                     currentHistoryIndex = messageHistory.Count - 1;
                 }
-                RoomchatInputField.text = messageHistory[currentHistoryIndex];
+                roomthings.RoomchatInputField.text = messageHistory[currentHistoryIndex];
 		/*이렇게 입력값을 변경했을 경우 커서가 첫번째 칸에 머물러 있어서 마지막 위치로 이동시킴*/
-                RoomchatInputField.caretPosition = RoomchatInputField.text.Length;
+                roomthings.RoomchatInputField.caretPosition = roomthings.RoomchatInputField.text.Length;
             }
         }
-        else if(chatInputField != null && chatInputField.isFocused && Input.GetKeyDown(KeyCode.UpArrow))
+        else if(lobbythings.chatInputField != null && lobbythings.chatInputField.isFocused && Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (messageHistory.Count > 0)
             {
@@ -1027,8 +1031,8 @@ public class Lobby_Client : NetworkBehaviour
                 {
                     currentHistoryIndex = messageHistory.Count - 1;
                 }
-                chatInputField.text = messageHistory[currentHistoryIndex];
-                chatInputField.caretPosition = chatInputField.text.Length;
+                lobbythings.chatInputField.text = messageHistory[currentHistoryIndex];
+                lobbythings.chatInputField.caretPosition = lobbythings.chatInputField.text.Length;
             }
         }
 
