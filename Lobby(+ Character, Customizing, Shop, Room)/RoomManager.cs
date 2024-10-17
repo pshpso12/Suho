@@ -59,8 +59,8 @@ public class RoomManager : MonoBehaviour
         {
             if (nameForProfanityCheck.Contains(profanity, StringComparison.OrdinalIgnoreCase))
             {
-                name = ""; // If any profanity is found, the name is set to empty.
-                break; // No need to check for more profanities, exit the loop.
+                name = "";
+                break;
             }
         }
         /*공백이면 미리 정의해둔 5개의 방 이름 중 랜덤한 하나로 설정*/
@@ -123,8 +123,8 @@ public class RoomManager : MonoBehaviour
         {
             if (nameForProfanityCheck.Contains(profanity, StringComparison.OrdinalIgnoreCase))
             {
-                NewRoomName = ""; // If any profanity is found, the name is set to empty.
-                break; // No need to check for more profanities, exit the loop.
+                NewRoomName = "";
+                break;
             }
         }
         if (string.IsNullOrWhiteSpace(NewRoomName))
