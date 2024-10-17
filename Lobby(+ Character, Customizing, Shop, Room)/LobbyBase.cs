@@ -243,7 +243,7 @@ public class LobbyBase : MonoBehaviour
 
     public void OnGameExit()
     {
-	    Application.Quit();
+	Application.Quit();
     }
 
     private void AddMouseOverSound(GameObject roomEntry)
