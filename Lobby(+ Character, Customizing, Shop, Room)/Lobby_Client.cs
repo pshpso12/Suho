@@ -21,14 +21,20 @@ public class MainLobby : NetworkBehaviour
     private Shop_Things shopthings;
     private Room_Things roomthings;
     private Purchases_Things purchasethings;
+    
     private List<string> profanitiesList = new List<string>();
     private List<string> messageBuffer = new List<string>();
     private const int maxMessageCount = 30;
     
     private static event Action<string> OnMessage;
+    private static event Action<string> OnRoomMessage;
     private string lastWhisperID = "";
     private List<string> messageHistory = new List<string>();
     private int currentHistoryIndex = -1;
+
+    [SerializeField] private Sprite Cpimage;
+    [SerializeField] private Sprite Bpimage;
+    [SerializeField] private OutfitDataList outfitDataList;
 
     private int Shop_characterNum;
     private string Shop_type;
