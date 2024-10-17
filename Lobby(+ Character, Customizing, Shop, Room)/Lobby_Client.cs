@@ -213,14 +213,14 @@ public class Lobby_Client : NetworkBehaviour
             GameObject levelListGameObject = GameObject.Find("Charater_List/Scroll View/Viewport");
             if(levelListGameObject != null)
             {
-                ScrollControllerM scrollController = levelListGameObject.GetComponent<ScrollControllerM>();
-                if(scrollController != null)
+                CusBase cusbase = levelListGameObject.GetComponent<CusBase>();
+                if(cusbase != null)
                 {
-                    scrollController.onSendCloth.AddListener(HandleSendCloth);
+                    cusbase.onSendCloth.AddListener(HandleSendCloth);
 
-                    AddButtonListeners(scrollController.Lpage_Btn, true, true, 0);
-                    AddButtonListeners(scrollController.Rpage_Btn, true, true, 0);
-                    foreach(Button cbtn in scrollController.buttons)
+                    AddButtonListeners(cusbase.Lpage_Btn, true, true, 0);
+                    AddButtonListeners(cusbase.Rpage_Btn, true, true, 0);
+                    foreach(Button cbtn in cusbase.buttons)
                     {
                         AddButtonListeners(cbtn, true, true, 0);
                     }
@@ -230,7 +230,7 @@ public class Lobby_Client : NetworkBehaviour
             PurChaseLoad();
 
             Button SQuitBtn = GameObject.Find("Ui_Overone/Over_Btn/Quit_btn").GetComponent<Button>();
-            AttachCus ForCusCon = GameObject.Find("Scenmanager").GetComponent<AttachCus>();
+            CusCharacter ForCusCon = GameObject.Find("Scenmanager").GetComponent<CusCharacter>();
             if(ForCusCon)
             {
                 foreach (Button btn in ForCusCon.ChaButtons)
