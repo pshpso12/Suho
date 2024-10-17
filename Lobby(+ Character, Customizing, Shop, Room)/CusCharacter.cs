@@ -75,14 +75,14 @@ public class CusCharacter : MonoBehaviour
 
         if (characterID > 0 && characterID <= characterPrefabs.Length)
         {
-            GameObject prefab = characterPrefabs[characterID - 1]; // Arrays are zero-indexed
+            GameObject prefab = characterPrefabs[characterID - 1];
             currentCharacter = Instantiate(prefab, characterSpawnPoint.position, characterSpawnPoint.rotation);
             currentCharacter.transform.localScale = characterSpawnPoint.localScale;
         }
 
         foreach (var characterData in ClientDataManager.Instance.CharacterData.characters)
         {
-            if (characterData.CharacterType == characterID) // Match found
+            if (characterData.CharacterType == characterID)
             {
                 if (characterData.TopOutfitID != "")
                     ApplyOutfit(characterData.TopOutfitID, currentCharacter, "Top", characterID);
