@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 
 public class MainLobby : NetworkBehaviour
 {
+   
     private LobbyBase lobbybase;
     private Lobby_Things lobbythings;
     private Char_Things charthings;
@@ -25,6 +26,9 @@ public class MainLobby : NetworkBehaviour
     private List<string> profanitiesList = new List<string>();
     private List<string> messageBuffer = new List<string>();
     private const int maxMessageCount = 30;
+
+    private TMP_Text chatText;
+    private TMP_Text RoomchatText;
     
     private static event Action<string> OnMessage;
     private static event Action<string> OnRoomMessage;
