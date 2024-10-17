@@ -794,7 +794,6 @@ public class Lobby_Client : NetworkBehaviour
         
         if (isWhisper)
         {
-            // Handle sending a whisper here
             string[] splitMessage = trimmedMessage.Split(new char[] { ' ' }, 3);
             if (splitMessage.Length >= 3)
             {
@@ -805,12 +804,11 @@ public class Lobby_Client : NetworkBehaviour
         }
         else
         {
-            // Regular message send
             CmdSendMessage(message, ClientDataManager.Instance.UserDetails.Nickname);
         }
         if (messageHistory.Count >= 3)
         {
-            messageHistory.RemoveAt(0); // Remove the oldest message
+            messageHistory.RemoveAt(0);
         }
         messageHistory.Add(message);
         currentHistoryIndex = messageHistory.Count;
@@ -1030,7 +1028,7 @@ public class Lobby_Client : NetworkBehaviour
                     currentHistoryIndex = messageHistory.Count - 1;
                 }
                 chatInputField.text = messageHistory[currentHistoryIndex];
-                chatInputField.caretPosition = chatInputField.text.Length; // Move the cursor to the end of the text
+                chatInputField.caretPosition = chatInputField.text.Length;
             }
         }
 
